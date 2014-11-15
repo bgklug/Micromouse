@@ -18,13 +18,14 @@ int main(void){
   //-----Maze Setup-----//
   //puts walls along the outer perimeter
   for(int i=0;i<15;i++){
-    for(int j=0;i<15;i++){
-      maze[i][0][0] = 1;
-      maze[i][15][2] = 1;
-      maze[0][j][3] = 1;
-      maze[15][j][1] = 1;
-    }
+	maze[i][0][0] = 1;
+    maze[i][15][2] = 1;
+	
   }
+  for(int j=0;j<15;j++){
+     maze[0][j][3] = 1;
+    maze[15][j][1] = 1;
+   }
   //puts a third wall in every corner
   //South-West (micromouse starting position)
   maze[0][0][1] = 1;

@@ -16,8 +16,8 @@ int main(void)
 	int gen = 0;		//generation count
 	int goodGen = 0;	//whether or not the maze is solvable
 	clock_t tStart=clock(), tEnd=clock();	//starting and ending time
-	srand(clock());
-
+	srand(clock());    
+	
 	//----------//----------//MAZE GENERATION//----------//----------//
 
 	//----------//Constants//----------//
@@ -78,11 +78,11 @@ int main(void)
 
 	//Boarder//
 	//make the edges have walls
-	for(int ii=0; ii<16; ii++){
-		b[0][ii][3] = 1;
-		b[15][ii][1] = 1;
-		b[ii][0][2] = 1;
-		b[ii][15][0] = 1;
+	for(int i=0; i<16; i++){
+		b[0][i][3] = 1;
+		b[15][i][1] = 1;
+		b[i][0][2] = 1;
+		b[i][15][0] = 1;
 	}
 
 	for(int i=0; i<16; i++){
@@ -99,13 +99,13 @@ int main(void)
 							goodSeed = 1;}
 					}
 				}
-				if(!goodSeed||(goodSeed==15)){
-					srand(clock());
+				if(!goodSeed||(goodSeed==15)){ 
+					srand(clock()); 
 				}
 
 				//----------//Walls//----------//
 				//build a random maze
-
+				
 				//Checkerboard//
 				//only generates every other grid space
 				for(int k=0; k<4; k++){
@@ -126,7 +126,7 @@ int main(void)
 
 	//----------//Constants//----------//
 	//This was placed here carelessly to make sure the constants stay as they should be without having to be creative
-
+	
 	//Center Walls//
 	//makes the center squares have walls on all sides
 	for(int i=7; i<=8; i++){
@@ -210,7 +210,7 @@ int main(void)
 						}
 					}
 				}
-
+				
 
 				//----------//Flood//----------//
 				//test random maze with flood logic
@@ -229,7 +229,7 @@ int main(void)
  			 	c[7][8] = 0;
  			 	c[8][7] = 0;
  			 	c[8][8] = 0;
-
+		
 				//Floodfill//
 			  	//fills the flood array with values using flood fill logic
 			  	for(int l=0;l<256;l++){
@@ -260,24 +260,24 @@ int main(void)
 	      				}
 	    			}
 	 			}
-
+				
 				//Check//
 				//checks if all four corners can reach the center
 				if((c[0][0]!=-1)&&(c[0][15]!=-1)&&(c[15][0]!=-1)&&(c[15][15]!=-1)){
 					goodGen = 1;
 				}
-
+			
 
 				//----------//Debugging//----------//
 				//code to help debug
-
+	
 				//Print Info//
 				//prints time elapsed, generation count, and goodSeed value to console
 				system("cls");
 				tEnd = clock();
 				printf("Time:\t\t%.2f\n", (double)(tEnd - tStart)/1000);
 				printf("Generation:\t%d\n", gen++);
-
+				
 				//Print Maze//
 				//prints visual representation of maze
 
@@ -285,7 +285,7 @@ int main(void)
 		for(int i=0; i<16; i++){
 				printf("\n|");
 			for(int j=0; j<16; j++){
-
+				
 				//visual representation
 				if(b[i][j][1]){
 					printf("_");}
@@ -295,9 +295,9 @@ int main(void)
 					printf("|");}
 				else{
 					printf(" ");}
-
+	
 				//printf("%d ", b[i][j][0]+b[i][j][1]+b[i][j][2]+b[i][j][3]);	//wall count
-
+	
 				//printf("%d\t",c[i][j]);	//flood value
 			}
 		}
