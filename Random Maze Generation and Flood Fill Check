@@ -70,7 +70,7 @@ void generateRandomMaze(int b[16][16][4]) {
 		for (int j = 0; j < 16; j++) {
 			//randomize the bottom and left sides of each cell
 			for (int k = 2; k < 4; k++) {
-				b[i][j][k] = (rand()%3)%2;
+				b[i][j][k] = (rand()%5)%2;
 			}
 		}
 	}
