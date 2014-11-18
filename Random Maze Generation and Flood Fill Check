@@ -1,5 +1,6 @@
 //Name: MM Maze - Build
-//Author: Dillon Mills
+//Original Author: Dillon Mills
+//Editor: Robert Spiller
 //Purpose: Randomly build a 16x16 maze to test MicroMouse algorithms.
 
 #include <stdio.h>
@@ -10,8 +11,7 @@
 void clearArray(int b[16][16][4]);
 void generateRandomMaze(int b[16][16][4]);
 void matchCells(int b[16][16][4]);
-bool initiateFloodFill(int b[16][16][4], int c[16][16]);
-void floodFill(int b[16][16][4], int c[16][16], int, int);
+bool floodFill(int b[16][16][4], int c[16][16]);
 void printMaze(int b[16][16][4]);
 void printFloodFill(int c[16][16]);
 
@@ -32,7 +32,7 @@ void main() {
 		
 		clearArray(b);
 		generateRandomMaze(b);
-		goodGen = initiateFloodFill(b, c);
+		goodGen = floodFill(b, c);
 		
 		//----------//Debugging//----------//
 		//code to help debug
@@ -43,19 +43,12 @@ void main() {
 		tEnd = clock();
 		printf("Time:\t\t%.2f\n", (double)(tEnd - tStart)/1000);
 		printf("Generation:\t%d\n", gen++);
-		printMaze(b);
-		printf("\n\n");
-		printFloodFill(c);
-
-		/*printf("\n\n");
-		for (int i = 15; i >= 0; i--) {
-			for (int j = 0; j < 16; j++) {
-				printf("%d ", b[i][j][0] + b[i][j][1] + b[i][j][2] + b[i][j][3]);	//wall count
-			}
-			printf("\n");
-		}*/
-		_getch();
+		//printMaze(b);
 	}
+	printMaze(b);
+	printf("\n\n");
+	printFloodFill(c);
+	printf("\n");
 }
 
 void clearArray(int b[16][16][4]) {
@@ -187,68 +180,67 @@ void matchCells(int b[16][16][4]) {
 	}
 }
 
-bool initiateFloodFill(int b[16][16][4], int c[16][16]) {
+bool floodFill(int b[16][16][4], int c[16][16]) {
 	//----------//Flood//----------//
-	//test random maze with flood logic
-
-	//Reset//
 	//fills all flood array spaces with -1
-	for (int k = 0; k < 16; k++) {
-		for (int l = 0; l < 16; l++) {
-			c[k][l] = -1;
+	for(int i = 0; i < 16; i++) {
+		for(int j = 0; j < 16; j++) {
+			c[i][j] = -1;
 		}
 	}
 
-	//Center//
 	//fills the four goal flood array spaces with 0
 	c[7][7] = 0;
 	c[7][8] = 0;
 	c[8][7] = 0;
 	c[8][8] = 0;
 
-	//Floodfill//
 	//fills the flood array with values using flood fill logic
-	for (int i = 7; i <= 8; i++) {
-		for (int j = 7; j <= 8; j++) {
-			floodFill(b, c, i, j);
+	for (int k = 0; k < 256; k++) {
+		for (int i = 0; i < 16; i++) {
+			for (int j = 0; j < 16; j++) {
+				if (c[i][j] == k) {  //if the flood array space equals k (starting at 0), place k+1 in adjacent flood array spaces
+					if (i < 15) {
+						if (!b[i + 1][j][2] && (c[i + 1][j] == -1)) {  //North
+							c[i + 1][j] = c[i][j] + 1;
+						}
+					}
+					if (i > 0) {
+						if (!b[i - 1][j][0] && (c[i - 1][j] == -1)) {  //South
+							c[i - 1][j] = c[i][j] + 1;
+						}
+					}
+					if (j < 15) {
+						if (!b[i][j + 1][3] && (c[i][j + 1] == -1)) {  //East
+							c[i][j + 1] = c[i][j] + 1;
+						}
+					}
+					if (j > 0) {
+						if(!b[i][j - 1][1] && (c[i][j - 1] == -1)) {  //West
+							c[i][j - 1] = c[i][j] + 1;
+						}
+					}
+				}
+			}
 		}
 	}
 	
 	//Check//
+	/*
+	//optional: makes sure all cells are discoverable
+	for (int i = 0; i < 16; i++) {
+		for (int j = 0; j < 16; j++) {
+			if (c[i][j] == -1) {
+				return 0;
+			}
+		}
+	}
+	*/
 	//checks if all four corners can reach the center
 	if ((c[0][0] != -1) && (c[0][15] != -1) && (c[15][0] != -1) && (c[15][15] != -1)) {
 		return 1;
 	}
 	return 0;
-}
-
-/*Flood-fill (node, target-color, replacement-color):
- 1. If target-color is equal to replacement-color, return.
- 2. If the color of node is not equal to target-color, return.
- 3. Set the color of node to replacement-color.
- 4. Perform Flood-fill (one step to the west of node, target-color, replacement-color).
-    Perform Flood-fill (one step to the east of node, target-color, replacement-color).
-    Perform Flood-fill (one step to the north of node, target-color, replacement-color).
-    Perform Flood-fill (one step to the south of node, target-color, replacement-color).
- 5. Return.*/
-
-void floodFill(int b[16][16][4], int c[16][16], int i, int j) {
-	if (i < 15 && c[i + 1][j] == -1 && !b[i][j][0] && !b[i + 1][j][2]) {
-		c[i + 1][j] = c[i][j] + 1;
-		floodFill(b, c, i + 1, j);
-	}
-	if (i > 0 && c[i - 1][j] == -1 && !b[i][j][2] && !b[i - 1][j][0]) {
-		c[i - 1][j] = c[i][j] + 1;
-		floodFill(b, c, i + 1, j);
-	}
-	if (j < 15 && c[i][j + 1] == -1 && !b[i][j][1] && !b[i][j + 1][3]) {
-		c[i][j + 1] = c[i][j] + 1;
-		floodFill(b, c, i, j + 1);
-	}
-	if (j > 0 && c[i][j - 1] == -1 && !b[i][j][3] && !b[i][j - 1][1]) {
-		c[i][j - 1] = c[i][j] + 1;
-		floodFill(b, c, i, j - 1);
-	}
 }
 
 void printMaze(int b[16][16][4]) {
