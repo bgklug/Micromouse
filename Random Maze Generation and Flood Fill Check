@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+#include <math.h>
 #include <conio.h> // for _getch()
 
 void clearArray(int b[16][16][4]);
@@ -13,18 +14,19 @@ void generateRandomMaze(int b[16][16][4]);
 void matchCells(int b[16][16][4]);
 bool floodFill(int b[16][16][4], int c[16][16]);
 void printMaze(int b[16][16][4]);
+void printMaze2(int b[16][16][4], int c[16][16], bool flood = false);
 void printFloodFill(int c[16][16]);
 
 //----------//----------//NOTES//----------//----------//
 
 void main() {
 	//----------//----------//INITIALIZATION//----------//----------//
-	int b[16][16][4];	//maze
-	int c[16][16];		//flood (consider combining with maze b[][][])
-	int gen = 0;		//generation count
-	int goodGen = 0;	//whether or not the maze is solvable
+	int b[16][16][4] = { 0 };	//maze
+	int c[16][16] = { 0 };		//flood (consider combining with maze b[][][])
+	int gen = 0;				//generation count
+	int goodGen = 0;			//whether or not the maze is solvable
 	clock_t tStart = clock(), tEnd = clock();	//starting and ending time
-	srand(clock());    
+	srand((unsigned int)time(NULL));
 	
 	//----------//----------//MAZE GENERATION//----------//----------//
 	
@@ -43,12 +45,13 @@ void main() {
 		tEnd = clock();
 		printf("Time:\t\t%.2f\n", (double)(tEnd - tStart)/1000);
 		printf("Generation:\t%d\n", gen++);
-		//printMaze(b);
+		//printMaze(b);_getch();
 	}
 	printMaze(b);
 	printf("\n\n");
-	printFloodFill(c);
-	printf("\n");
+	/*printFloodFill(c);
+	printf("\n");*/
+	printMaze2(b, c, true);
 }
 
 void clearArray(int b[16][16][4]) {
@@ -70,7 +73,7 @@ void generateRandomMaze(int b[16][16][4]) {
 		for (int j = 0; j < 16; j++) {
 			//randomize the bottom and left sides of each cell
 			for (int k = 2; k < 4; k++) {
-				b[i][j][k] = (rand()%5)%2;
+				b[i][j][k] = (rand()%3)%2;
 			}
 		}
 	}
@@ -147,8 +150,8 @@ void generateRandomMaze(int b[16][16][4]) {
 				if (!(b[i][j][3] + b[i][j][2] + b[i - 1][j - 1][0] + b[i - 1][j - 1][1])) {
 					switch (rand()%4) {
 						case 0: b[i][j][3] = 1;			break;
-						case 1: b[i][j][2] = 1;		break;
-						case 2: b[i - 1][j - 1][0] = 1;		break;
+						case 1: b[i][j][2] = 1;			break;
+						case 2: b[i - 1][j - 1][0] = 1;	break;
 						case 3: b[i - 1][j - 1][1] = 1;	break;
 					}
 				}
@@ -272,6 +275,74 @@ void printMaze(int b[16][16][4]) {
 
 /*char wall[16] = {(char)32, (char)32, (char)32, (char)192, (char)32, (char)179, (char)218, (char)195, 
 					 (char)32, (char)217, (char)196, (char)193, (char)191, (char)180, (char)194, (char)197};*/
+
+void printMaze2(int b[16][16][4], int c[16][16], bool flood) {
+	char wall[16] = {(char)32, (char)32, (char)32, (char)192, (char)32, (char)179, (char)218, (char)195, 
+					 (char)32, (char)217, (char)196, (char)193, (char)191, (char)180, (char)194, (char)197};
+	int n = 0;
+	for (int i = 15; i >= 0; i--) {
+		
+		for (int j = 0; j < 16; j++) { // places ceiling of each row
+			n = 0;
+			if (i < 15) {
+				n = b[i + 1][j][3];
+			}
+			if (j > 0) {
+				n = n + 8*b[i][j - 1][0];
+			}
+			n = n + 2*b[i][j][0] + 4*b[i][j][3];
+			printf("%c%c%c", wall[n], wall[10*b[i][j][0]], wall[10*b[i][j][0]]);
+			if (j == 15) {
+				n = 0;
+				if (i < 15) {
+					n = b[i + 1][j][1];
+				}
+				n = n + 4*b[i][j][1] + 8*b[i][j][0];
+				printf("%c", wall[n]);
+			}
+		}
+		printf("\n");
+
+		for (int j = 0; j < 16; j++) { // places walls and spaces of each row
+			printf("%c", wall[5*b[i][j][3]]);
+			if (flood) {
+				if (c[i][j] < 10 && c[i][j] > -1) {
+					printf(" %d", c[i][j]);
+				}
+				else {
+					printf("%d", c[i][j]);
+				}
+			}
+			else {
+				printf("  ");
+			}
+			if (j == 15) {
+				printf("%c", wall[5]);
+			}
+		}
+		printf("\n");
+
+		if (i == 0) {
+			for (int j = 0; j < 16; j++) { // places floor of maze
+				n = 0;
+				if (j > 0) {
+					n = n + 8*b[i][j - 1][2];
+				}
+				n = n + b[i][j][3] + 2*b[i][j][2];
+				printf("%c%c%c", wall[n], wall[10], wall[10]);
+				if (j == 15) {
+					printf("%c", wall[9]);
+				}
+			}
+			printf("\n");
+		}
+
+	}
+}
+
+double distance(double x1, double y1, double x2, double y2) {
+	return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+}
 
 void printFloodFill(int c[16][16]) {
 	for (int i = 15; i >= 0; i--) {
