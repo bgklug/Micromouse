@@ -14,8 +14,9 @@ void generateRandomMaze(int b[16][16][4]);
 void matchCells(int b[16][16][4]);
 bool floodFill(int b[16][16][4], int c[16][16]);
 void printMaze(int b[16][16][4]);
-void printMaze2(int b[16][16][4], int c[16][16], bool flood = false);
+void printMaze2(int b[16][16][4], int c[16][16], int d[16][16], bool flood = false, bool bestPath = false);
 void printFloodFill(int c[16][16]);
+void bestPath(int b[16][16][4], int c[16][16], int d[16][16]);
 
 //----------//----------//NOTES//----------//----------//
 
@@ -23,6 +24,7 @@ void main() {
 	//----------//----------//INITIALIZATION//----------//----------//
 	int b[16][16][4] = { 0 };	//maze
 	int c[16][16] = { 0 };		//flood (consider combining with maze b[][][])
+	int d[16][16] = { 0 };
 	int gen = 0;				//generation count
 	int goodGen = 0;			//whether or not the maze is solvable
 	clock_t tStart = clock(), tEnd = clock();	//starting and ending time
@@ -47,11 +49,12 @@ void main() {
 		printf("Generation:\t%d\n", gen++);
 		//printMaze(b);_getch();
 	}
+	bestPath(b, c, d);
 	printMaze(b);
 	printf("\n\n");
 	/*printFloodFill(c);
 	printf("\n");*/
-	printMaze2(b, c, true);
+	printMaze2(b, c, d, true, true);
 }
 
 void clearArray(int b[16][16][4]) {
@@ -67,13 +70,14 @@ void clearArray(int b[16][16][4]) {
 }
 
 void generateRandomMaze(int b[16][16][4]) {
+	int percent = 33; // percent chance of placing a wall
 	//----------//Walls//----------//
 	//build a random maze
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
 			//randomize the bottom and left sides of each cell
 			for (int k = 2; k < 4; k++) {
-				b[i][j][k] = (rand()%3)%2;
+				b[i][j][k] = (int)(rand()%100 < percent);
 			}
 		}
 	}
@@ -276,7 +280,7 @@ void printMaze(int b[16][16][4]) {
 /*char wall[16] = {(char)32, (char)32, (char)32, (char)192, (char)32, (char)179, (char)218, (char)195, 
 					 (char)32, (char)217, (char)196, (char)193, (char)191, (char)180, (char)194, (char)197};*/
 
-void printMaze2(int b[16][16][4], int c[16][16], bool flood) {
+void printMaze2(int b[16][16][4], int c[16][16], int d[16][16], bool flood, bool bestPath) {
 	char wall[16] = {(char)32, (char)32, (char)32, (char)192, (char)32, (char)179, (char)218, (char)195, 
 					 (char)32, (char)217, (char)196, (char)193, (char)191, (char)180, (char)194, (char)197};
 	int n = 0;
@@ -305,7 +309,15 @@ void printMaze2(int b[16][16][4], int c[16][16], bool flood) {
 
 		for (int j = 0; j < 16; j++) { // places walls and spaces of each row
 			printf("%c", wall[5*b[i][j][3]]);
-			if (flood) {
+			if (bestPath) {
+				if (d[i][j]) {
+					printf(" %c", wall[d[i][j]]);
+				}
+				else {
+					printf("  ");
+				}
+			}
+			else if (flood) {
 				if (c[i][j] < 10 && c[i][j] > -1) {
 					printf(" %d", c[i][j]);
 				}
@@ -355,5 +367,45 @@ void printFloodFill(int c[16][16]) {
 			}
 		}
 		printf("\n");
+	}
+}
+
+void bestPath(int b[16][16][4], int c[16][16], int d[16][16]) {
+	int dir = 0;
+
+	// starts the path at the bottom left corner
+	d[0][0] = 4;
+
+	for (int k = 255; k >= 0; k--) {
+		for (int i = 0; i < 16; i++) {
+			for (int j = 0; j < 16; j++) {
+				if (c[i][j] == k) {  //if the flood array space equals k (starting at 0), place k+1 in adjacent flood array spaces
+					if (i < 15) {
+						if (!b[i + 1][j][2] && c[i + 1][j] == k + 1 && d[i + 1][j]) {  //North
+							d[i][j] = 1;
+							d[i + 1][j] = d[i + 1][j] + 4;
+						}
+					}
+					if (i > 0) {
+						if (!b[i - 1][j][0] && c[i - 1][j] == k + 1 && d[i - 1][j]) {  //South
+							d[i][j] = 4;
+							d[i - 1][j] = d[i - 1][j] + 1;
+						}
+					}
+					if (j < 15) {
+						if (!b[i][j + 1][3] && c[i][j + 1] == k + 1 && d[i][j + 1]) {  //East
+							d[i][j] = 2;
+							d[i][j + 1] = d[i][j + 1] + 8;
+						}
+					}
+					if (j > 0) {
+						if(!b[i][j - 1][1] && c[i][j - 1] == k + 1 && d[i][j - 1]) {  //West
+							d[i][j] = 8;
+							d[i][j - 1] = d[i][j - 1] + 2;
+						}
+					}
+				}
+			}
+		}
 	}
 }
