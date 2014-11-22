@@ -1,5 +1,5 @@
-#ifndef MOTORPSUDO_H_INCLUDED
-#define MOTORPSUDO_H_INCLUDED
+#ifndef MOTORPSEUDO_H_INCLUDED
+#define MOTORPSEUDO_H_INCLUDED
 
 void moveN(int & dir);
 void moveE(int & dir);

@@ -1,5 +1,5 @@
-#ifndef SENSORPSUDO_H_INCLUDED
-#define SENSORPSUDO_H_INCLUDED
+#ifndef SENSORPSEUDO_H_INCLUDED
+#define SENSORPSEUDO_H_INCLUDED
 
 int sensorReadL(int dir, const int & m[16][16][5], int row, int col);
 int sensorReadF(int dir, const int & m[16][16][5], int row, int col);

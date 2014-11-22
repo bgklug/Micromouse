@@ -1,4 +1,4 @@
-#include "SensorPsudo.h"
+#include "SensorPseudo.h"
 int sensorReadL(int dir, const int & m[16][16][5], int row, int col){
 	return m[row][col][(dir - 1)% 4];//will return 1 for wall or 0 for space
 }
