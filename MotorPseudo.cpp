@@ -25,7 +25,7 @@ void moveE(int & dir, int & mouRow, int & mouCol){
 	}else if(dir == 2){
 		turnL(dir);
 		moveF(dir, mouRow,mouCol);
-	}else if(dir == 4){
+	}else if(dir == 0){
 		turnR(dir);
 		moveF(dir, mouRow,mouCol);
 	}
@@ -33,7 +33,7 @@ void moveE(int & dir, int & mouRow, int & mouCol){
 void moveS(int & dir, int & mouRow, int & mouCol){
 	if(dir == 2){
 		moveF(dir, mouRow,mouCol);
-	}else if(dir == 1){
+	}else if(dir == 0){
 		turnR(dir);
 		turnR(dir);
 		moveF(dir, mouRow,mouCol);
