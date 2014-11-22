@@ -138,7 +138,7 @@ void mazeGen()
 	{
 		unreachable = false;	
 	}
-	printFlood();
+	printWall();
 	}
 }
 
