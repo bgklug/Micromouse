@@ -134,7 +134,7 @@ void matchCells(int b[16][16][5]) {
 				if (b[i - 1][j][0]) {
 					b[i][j][2] = 1;
 				}
-				else if (b[i][j][2] = 1) {
+				else if (b[i][j][2]) {
 					b[i - 1][j][0] = 1;
 				}
 			}
@@ -154,7 +154,7 @@ void matchCells(int b[16][16][5]) {
 					b[i][j - 1][1] = 1;
 				}
 			}
-			if (j < 15 && b[i][j + 1][3]) {
+			if (j < 15) {
 				if (b[i][j + 1][3]) {
 					b[i][j][1] = 1;
 				}
