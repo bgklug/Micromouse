@@ -79,5 +79,5 @@ void turnR(int & dir){
 	dir = (dir + 1)%4;
 }
 void turnL(int & dir){
-	dir = (dir - 1)%4;
+	dir = (dir + 3)%4;
 }
