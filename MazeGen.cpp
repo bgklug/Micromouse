@@ -130,17 +130,37 @@ void matchCells(int b[16][16][5]) {
 	//makes sure each cell has the same walls as the adjacent cells
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
-			if (i > 0 && b[i - 1][j][0]) {
-				b[i][j][2] = 1;
+			if (i > 0) {
+				if (b[i - 1][j][0]) {
+					b[i][j][2] = 1;
+				}
+				else if (b[i][j][2] = 1) {
+					b[i - 1][j][0] = 1;
+				}
 			}
-			if (i < 15 && b[i + 1][j][2]) {
-				b[i][j][0] = 1;
+			if (i < 15) {
+				if (b[i + 1][j][2]) {
+					b[i][j][0] = 1;
+				}
+				else if (b[i][j][0]) {
+					b[i + 1][j][2] = 1;
+				}
 			}
-			if (j > 0 && b[i][j - 1][1]) {
-				b[i][j][3] = 1;
+			if (j > 0) {
+				if (b[i][j - 1][1]) {
+					b[i][j][3] = 1;
+				}
+				if (b[i][j][3]) {
+					b[i][j - 1][1] = 1;
+				}
 			}
 			if (j < 15 && b[i][j + 1][3]) {
-				b[i][j][1] = 1;
+				if (b[i][j + 1][3]) {
+					b[i][j][1] = 1;
+				}
+				if (b[i][j][1]) {
+					b[i][j + 1][3] = 1;
+				}
 			}
 		}
 	}
