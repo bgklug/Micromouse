@@ -2,7 +2,6 @@
 //Original Author: Dillon Mills
 //Editor: Robert Spiller
 //Purpose: Randomly build a 16x16 maze to test MicroMouse algorithms.
-//THIS IS AN UNCOMMENTED WORK IN PROGRESS
 
 #include <stdio.h>
 #include <time.h>
@@ -18,8 +17,8 @@ void printFullMaze(int b[16][16][5]);
 void printMouseMaze(int b[16][16][5], int, int, int, bool flood = false);
 void mouseSearch(int b[16][16][5], int, int, int);
 double distance(double, double, double, double);
-void autoPilot(int b[16][16][5], int c[16][16][5], int d[16][16][5], int &, int &, int &, bool flood = false, double targetrow = 7.5, double targetcol = 7.5);
-
+void autoPilot(int b[16][16][5], int c[16][16][5], int d[16][16][5], int &, int &, int &, bool flood = false, bool discover = false, double targetrow = 7.5, double targetcol = 7.5);
+void nearestUndiscovered(int c[16][16][5], int d[16][16][5], int , int , int &, int &);
 
 void main() {
 	int cell[16][16][5] = { 0 };	//maze and flood values
@@ -132,11 +131,11 @@ void printMouseMaze(int b[16][16][5], int row, int col, int dir, bool flood) {
 void mouseSearch(int b[16][16][5], int row, int col, int dir) {
 	int c[16][16][5] = { 0 };	// mouse's personal wall array
 	int d[16][16][5] = { 0 };
-	int autodir = 0, autodirnum = 255;
+	int autodir = 0, autodirnum = 255, nextrow, nextcol;
 	double tarrow = 7.5, tarcol = 7.5;
-	double autodirdist = 0;
+	double autodirdist = 0, nextdist = 0;
 	char input = 0;
-	bool search = true, flood = false, autopilot = false, discovernext = false;
+	bool flood = false;
 
 	//----------//Constants//----------//
 	//apply constants to the mouse wall array
@@ -156,7 +155,7 @@ void mouseSearch(int b[16][16][5], int row, int col, int dir) {
 	}
 	matchCells(d);
 
-	while (search) {
+	while (true) {
 
 		if (input == 'w' && !b[row][col][0]) {
 			moveN(dir, row, col);
@@ -177,16 +176,15 @@ void mouseSearch(int b[16][16][5], int row, int col, int dir) {
 			autoPilot(b, c, d, row, col, dir, flood);
 		}
 		else if (input == 'h') {
-			for (int i = 0; i < 16; i++) {
-				for (int j = 0; j < 16; j++) {
-					if (!d[i][j][0] || !d[i][j][1] || !d[i][j][2] || !d[i][j][3]) {
-						autoPilot(b, c, d, row, col, dir, flood, i, j);
-					}
+			for (int i = 0; i < 256; i++) {
+				nearestUndiscovered(c, d, row, col, nextrow, nextcol);
+				if (nextrow != -1 && nextcol != -1) {
+					autoPilot(b, c, d, row, col, dir, flood, true, nextrow, nextcol);
 				}
 			}
 		}
 		else if (input == 'j') {
-			autoPilot(b, c, d, row, col, dir, flood, 0, 0);
+			autoPilot(b, c, d, row, col, dir, flood, false, 0, 0);
 			dir = 0;
 		}
 
@@ -212,9 +210,10 @@ double distance(double x1, double y1, double x2, double y2) {
 	return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
 }
 
-void autoPilot(int b[16][16][5], int c[16][16][5], int d[16][16][5], int &row, int &col, int &dir, bool flood, double targetrow, double targetcol) {
+void autoPilot(int b[16][16][5], int c[16][16][5], int d[16][16][5], int &row, int &col, int &dir, bool flood, bool discover, double targetrow, double targetcol) {
 	int autodir, autodirnum;
 	double autodirdist;
+	bool tardisc = false;
 
 	while (true) {
 
@@ -225,7 +224,16 @@ void autoPilot(int b[16][16][5], int c[16][16][5], int d[16][16][5], int &row, i
 			floodFill(c, (int)targetrow, (int)targetcol);
 		}
 
-		if (c[row][col][4] <= 0) { // if target has been reached or is closed off
+		if (discover) {
+			tardisc = true;
+			for (int i = 0; i < 4; i++) {
+				if (!d[(int)targetrow][(int)targetcol][i]) {
+					tardisc = false;
+				}
+			}
+		}
+
+		if (c[row][col][4] <= 0 || tardisc) { // if target has been reached or is closed off or all sides have been discover in discover-mode
 			if (targetrow == 7.5 && targetcol == 7.5) { // if searching for center square, discover all the center cells
 				for (int i = 7; i < 9; i++) {
 					for (int j = 7; j < 9; j++) {
@@ -234,6 +242,13 @@ void autoPilot(int b[16][16][5], int c[16][16][5], int d[16][16][5], int &row, i
 						}
 					}
 				}
+				for (int i = 7; i < 9; i++) {
+					c[7][i][2] = 1;
+					c[8][i][0] = 1;
+					c[i][7][3] = 1;
+					c[i][8][1] = 1;
+				}
+				c[row][col][(dir + 2)%4] = 0;
 			}
 			else {
 				for (int i = 0; i < 4; i++) {
@@ -246,7 +261,7 @@ void autoPilot(int b[16][16][5], int c[16][16][5], int d[16][16][5], int &row, i
 
 		autodir = -1;
 		autodirnum = c[row][col][4];
-		autodirdist = distance(100, 100, targetcol, targetrow);
+		autodirdist = 100;
 		if (row < 15) {
 			if (c[row + 1][col][4] < autodirnum && !b[row][col][0] && distance(col, row + 1, targetcol, targetrow) < autodirdist) {
 				autodir = 0;
@@ -297,7 +312,27 @@ void autoPilot(int b[16][16][5], int c[16][16][5], int d[16][16][5], int &row, i
 		printFullMaze(b);
 		printMouseMaze(c, row, col, dir, flood);
 		//printf("%d, %d\n%d", row, col, dir);
-		//Sleep(100);
+		//Sleep(250);
 
+	}
+}
+
+void nearestUndiscovered(int c[16][16][5], int d[16][16][5], int row, int col, int &nextrow, int &nextcol) {
+	int nextflood = 255;
+
+	nextrow = -1;
+	nextcol = -1;
+
+	floodFill(c, row, col);
+	for (int i = 0; i < 16; i++) {
+		for (int j = 0; j < 16; j++) {
+			if (!d[i][j][0] || !d[i][j][1] || !d[i][j][2] || !d[i][j][3]) {
+				if (c[i][j][4] < nextflood) {
+					nextrow = i;
+					nextcol = j;
+					nextflood = c[i][j][4];
+				}
+			}
+		}
 	}
 }
