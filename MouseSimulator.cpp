@@ -20,6 +20,7 @@
 #include "MazeGen.h"
 #include "SensorPseudo.h"
 #include "MotorPseudo.h"
+#include "WallSituations.h"
 
 void printFullMaze(int b[16][16][5]);
 void printMouseMaze(int b[16][16][5], int, int, int, bool flood = false);
@@ -28,7 +29,6 @@ double distance(double, double, double, double);
 void autoPilot(int b[16][16][5], int c[16][16][5], int d[16][16][5], int &, int &, int &, bool flood = false, bool discover = false, double targetrow = 7.5, double targetcol = 7.5);
 bool nearestUndiscovered(int c[16][16][5], int d[16][16][5], int , int , int &, int &);
 void sampleMaze1(int b[16][16][5]);
-bool wallExists(char, char);
 
 void main() {
 	int cell[16][16][5] = { 0 };	//maze and flood values
@@ -172,6 +172,11 @@ void mouseSearch(int b[16][16][5], int row, int col, int dir) {
 	}
 	matchCells(d);*/
 
+	for (int i = 0; i < 4; i++) { // simulates mouse turning in place to discover origin cell
+		d[row][col][i] = 1;
+		c[row][col][i] = b[row][col][i];
+	}
+
 	while (true) { // infinite input loop
 
 		if (input == 'w' && !b[row][col][0]) { // if 'w,' go north
@@ -267,10 +272,8 @@ void autoPilot(int b[16][16][5], int c[16][16][5], int d[16][16][5], int &row, i
 					}
 				}
 			}
-			else { // if not searching for center square, set final cell walls as discovered
-				for (int i = 0; i < 4; i++) {
-					d[(int)targetrow][(int)targetcol][i] = 1;
-				}
+			for (int i = 0; i < 4; i++) { // discovers final cell
+				d[(int)targetrow][(int)targetcol][i] = 1;
 			}
 			matchCells(d);
 			return;
@@ -307,7 +310,7 @@ void autoPilot(int b[16][16][5], int c[16][16][5], int d[16][16][5], int &row, i
 				autodirdist = distance(col - 1, row, targetcol, targetrow);
 			}
 		}
-		switch (autodir) { // if a valid move has been determined, move their based on its direction
+		switch (autodir) { // if a valid move has been determined, move there based on its direction
 			case 0: moveN(dir, row, col); break;
 			case 1: moveE(dir, row, col); break;
 			case 2: moveS(dir, row, col); break;
@@ -324,7 +327,7 @@ void autoPilot(int b[16][16][5], int c[16][16][5], int d[16][16][5], int &row, i
 		matchCells(c);
 
 		// Prints the maze(s) to the screen
-		system("cls");
+		/*system("cls");
 		printFullMaze(b);
 		printMouseMaze(c, row, col, dir, flood);
 		if (discover) {
@@ -332,7 +335,7 @@ void autoPilot(int b[16][16][5], int c[16][16][5], int d[16][16][5], int &row, i
 		}
 		else {
 			printf("Going to: %.0f, %.0f", targetrow, targetcol);
-		}
+		}*/
 		//Sleep(250);
 
 	}
@@ -392,16 +395,4 @@ void sampleMaze1(int b[16][16][5]) {
 		}
 	}
 	matchCells(b);
-}
-
-bool wallExists(char identifier, char direction) {
-	// Evaluates the boolean equivalent of 'identifier' for the digit specified by 'direction'
-	// For direction: N = 0, E = 1, S = 2, W = 3
-	for (char i = 0; i < direction; i++) {
-		identifier = identifier/2;
-	}
-	if (identifier%2) {
-		return true;
-	}
-	return false;
 }
