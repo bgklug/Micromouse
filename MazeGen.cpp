@@ -122,6 +122,15 @@ void generateRandomMaze(int b[16][16][5]) {
 		}
 	}
 
+	b[7][7][0] = 0;
+	b[7][7][1] = 0;
+	b[8][7][1] = 0;
+	b[8][7][2] = 0;
+	b[8][8][2] = 0;
+	b[8][8][3] = 0;
+	b[7][8][3] = 0;
+	b[7][8][0] = 0;
+
 	matchCells(b);
 }
 
@@ -235,9 +244,7 @@ bool floodFill(int b[16][16][5], int row, int col) {
 }
 
 /* Functions for future reference
-
 prints the maze with the option of displaying the flood values or tracing the fastests path(s)
-
 void printMaze(int b[16][16][5], int d[16][16], bool flood, bool bestPath) {
 	char wall[16] = {(char)32, (char)32, (char)32, (char)192, (char)32, (char)179, (char)218, (char)195, 
 					 (char)32, (char)217, (char)196, (char)193, (char)191, (char)180, (char)194, (char)197};
@@ -264,7 +271,6 @@ void printMaze(int b[16][16][5], int d[16][16], bool flood, bool bestPath) {
 			}
 		}
 		printf("\n");
-
 		for (int j = 0; j < 16; j++) { // places walls and spaces of each row
 			printf("%c", wall[5*b[i][j][3]]);
 			if (bestPath) {
@@ -291,7 +297,6 @@ void printMaze(int b[16][16][5], int d[16][16], bool flood, bool bestPath) {
 			}
 		}
 		printf("\n");
-
 		if (i == 0) {
 			for (int j = 0; j < 16; j++) { // places floor of maze
 				n = 0;
@@ -306,18 +311,13 @@ void printMaze(int b[16][16][5], int d[16][16], bool flood, bool bestPath) {
 			}
 			printf("\n");
 		}
-
 	}
 }
-
 finds the best path and puts values into 'd' that will be interpreted as walls later
-
 void bestPath(int b[16][16][5], int d[16][16]) {
 	int dir = 0;
-
 	// starts the path at the bottom left corner
 	d[0][0] = 4;
-
 	for (int k = 255; k >= 0; k--) {
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
