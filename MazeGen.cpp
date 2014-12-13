@@ -159,7 +159,7 @@ void matchCells(int b[16][16][5]) {
 				if (b[i][j - 1][1]) {
 					b[i][j][3] = 1;
 				}
-				if (b[i][j][3]) {
+				else if (b[i][j][3]) {
 					b[i][j - 1][1] = 1;
 				}
 			}
@@ -167,7 +167,7 @@ void matchCells(int b[16][16][5]) {
 				if (b[i][j + 1][3]) {
 					b[i][j][1] = 1;
 				}
-				if (b[i][j][1]) {
+				else if (b[i][j][1]) {
 					b[i][j + 1][3] = 1;
 				}
 			}
