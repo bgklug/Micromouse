@@ -1,4 +1,4 @@
-int b[16][16][5] = { 0 };	//maze and flood values
+char b[16][16][5] = { 0 };  //maze and flood values
 
 void setup() {
   // begin serial communications at 9600 bits of data per second
@@ -82,9 +82,9 @@ boolean floodFill(int row, int col) {
   
   //checks if all four corners can reach the center
   if (b[0][0][4] != -1 && b[0][15][4] != -1 && b[15][0][4] != -1 && b[15][15][4] != -1) {
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
 void matchCells() {
@@ -129,7 +129,7 @@ void matchCells() {
 }
 
 void generateRandomMaze() {
-  int percent = 50; // percent chance of placing a wall
+  int percent = 30; // percent chance of placing a wall
   //----------//Walls//----------//
   //build a random maze
   for (int i = 0; i < 16; i++) {
@@ -247,9 +247,8 @@ void clearWalls() {
 }
 
 void randomMaze() {
-  int goodGen = 0;  //whether or not the maze is solvable
+  boolean goodGen = false;  //whether or not the maze is solvable
   randomSeed(millis());
-  
   //----------//----------//MAZE GENERATION//----------//----------//
   
   while (!goodGen) {  //makes sure maze is solvable
@@ -259,10 +258,38 @@ void randomMaze() {
   }
 }
 
+int input[3] = { '\0' };
+
+// shifts array up and puts 0 in first position by default
+void arrayShift(int my_arr[], int next = 0) {
+  /*for(int i = 1; i < length; i++) {
+    my_arr[length - i + 1] = my_arr[length - i];
+  }*/
+  my_arr[2] = my_arr[1];
+  my_arr[1] = my_arr[0];
+  my_arr[0] = next;
+}
+
 void loop() {
-  Serial.println("Generating...");
-  randomMaze();
   
-  printFullMaze();
-  delay(5000);
+  // send data only when you receive data:
+  if (Serial.available() > 0) {
+    // read the incoming byte and put in "buffer"
+    arrayShift(input, Serial.read());
+    
+    // say what you got:
+    Serial.print("I received: ");
+    Serial.write(input[0]);
+    Serial.print(", ");
+    Serial.println(input[0], DEC);
+    
+    // "gen" input
+    if (input[0] == 'n' && input[1] == 'e' && input[2] == 'g') {
+      
+      Serial.println("Generating...");
+      randomMaze();
+      printFullMaze();
+      
+    }
+  }
 }
