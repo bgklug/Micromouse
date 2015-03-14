@@ -2,6 +2,7 @@ char g[16][16][5] = { 0 };  // generated maze and flood values
 char m[16][16][5] = { 0 };  // mouse maze and flood values
 byte row = 0;  // mouse global position values
 byte col = 0;
+byte dir = 0;
 
 void setup() {
   // begin serial communications at 9600 bits of data per second
@@ -278,8 +279,8 @@ void printMouseMaze(char b[16][16][5], byte row, byte col, byte dir, boolean flo
   // Prints the maze that the mouse sees
   // Analyzes what walls connect to each peg and prints the corners and walls of the maze
   // Also prints the mouse and its orientation, as well as the flood values if toggled on
-  char wall[16] = {(char)32, (char)32, (char)32, (char)192, (char)32, (char)179, (char)218, (char)195, 
-                   (char)32, (char)217, (char)196, (char)193, (char)191, (char)180, (char)194, (char)197};
+  char wall[16] = {(char)32, (char)35, (char)35, (char)35, (char)35, (char)35, (char)35, (char)35, 
+                   (char)32, (char)35, (char)35, (char)35, (char)35, (char)35, (char)35, (char)35};
   int n = 0;
   
   for (byte i = 15; i < 255; i--) { // for a byte, -1 = 255, so this will still iterate 16 times
@@ -320,10 +321,11 @@ void printMouseMaze(char b[16][16][5], byte row, byte col, byte dir, boolean flo
       }
       else if (flood) { // if flood is toggled on, prints the flood value
         if (b[i][j][4] < 0 || b[i][j][4] > 9) { // if value takes up two spaces, don't print a space before
-          Serial.print(b[i][j][4]);
+          Serial.print(b[i][j][4], DEC);
         }
         else {
-          Serial.print(b[i][j][4]);
+          Serial.print(" ");
+          Serial.print(b[i][j][4], DEC);
         }
       }
       else { // else, prints a space
@@ -394,7 +396,12 @@ void loop() {
       randomMaze(g);
       Serial.println("Generated");
       Serial.println("Printing...");
+      row = 0;
+      col = 0;
+      dir = 0;
+      floodFill(g, -1, -1);
       printFullMaze(g, row, col);
+      printMouseMaze(g, row, col, dir, true);
       Serial.println("Printed");
       
     }
@@ -402,30 +409,36 @@ void loop() {
     // "w" input
     if (input[0] == 'w') {
       row++;
-      printFullMaze(g, row, col);
+      dir = 0;
+      printMouseMaze(g, row, col, dir, false);
     }
     
     // "a" input
     if (input[0] == 'a') {
       col--;
-      printFullMaze(g, row, col);
+      dir = 3;
+      printMouseMaze(g, row, col, dir, false);
     }
     
     // "s" input
     if (input[0] == 's') {
       row--;
-      printFullMaze(g, row, col);
+      dir = 2;
+      printMouseMaze(g, row, col, dir, false);
     }
     
     // "d" input
     if (input[0] == 'd') {
       col++;
-      printFullMaze(g, row, col);
+      dir = 1;
+      printMouseMaze(g, row, col, dir, false);
     }
     
     // "solve" input
     if (input[4] == 's' && input[3] == 'o' && input[2] == 'l' && input[1] == 'v' && input[0] == 'e') {
       Serial.println("Sure thing.  I'll begin solving right away.  Thanks for asking so politely!");
+      
+      
     }
     
     clock = (int)millis();
