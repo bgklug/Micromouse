@@ -1,13 +1,29 @@
-char g[16][16][5] = { 0 };  // generated maze and flood values
-char m[16][16][5] = { 0 };  // mouse maze and flood values
+const char SIZE = 16;
+
+char g[SIZE][SIZE][5];  // generated maze and flood values
+char m[SIZE][SIZE][5];  // mouse maze and flood values
 byte row = 0;  // mouse global position values
 byte col = 0;
 byte dir = 0;
+boolean flood = false;
 
 void setup() {
   // begin serial communications at 9600 bits of data per second
   // for communicating with the computer, use one of these rates: 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, or 115200
   Serial.begin(9600);
+  
+  // generate maze at startup
+  Serial.println("Generating...");
+  randomMaze(g);
+  Serial.println("Generated");
+  Serial.println("Printing...");
+  row = 0;
+  col = 0;
+  dir = 0;
+  floodFill(g, -1, -1);
+  printFullMaze(g, row, col);
+  printMouseMaze(g, row, col, dir, flood);
+  Serial.println("Printed");
 }
 
 void printFullMaze(char b[16][16][5], byte row, byte col) {
@@ -401,42 +417,45 @@ void loop() {
       dir = 0;
       floodFill(g, -1, -1);
       printFullMaze(g, row, col);
-      printMouseMaze(g, row, col, dir, true);
+      printMouseMaze(g, row, col, dir, flood);
       Serial.println("Printed");
       
     }
     
     // "w" input
-    if (input[0] == 'w') {
-      row++;
-      dir = 0;
-      printMouseMaze(g, row, col, dir, false);
+    if (input[0] == 'w' && !g[row][col][0]) {  // if no wall, go north
+      moveN(dir, row, col);
+      printMouseMaze(g, row, col, dir, flood);
     }
     
     // "a" input
-    if (input[0] == 'a') {
-      col--;
-      dir = 3;
-      printMouseMaze(g, row, col, dir, false);
+    if (input[0] == 'a' && !g[row][col][3]) {  // go west
+      moveW(dir, row, col);
+      printMouseMaze(g, row, col, dir, flood);
     }
     
     // "s" input
-    if (input[0] == 's') {
-      row--;
-      dir = 2;
-      printMouseMaze(g, row, col, dir, false);
+    if (input[0] == 's' && !g[row][col][2]) {  // go south
+      moveS(dir, row, col);
+      printMouseMaze(g, row, col, dir, flood);
     }
     
     // "d" input
-    if (input[0] == 'd') {
-      col++;
-      dir = 1;
-      printMouseMaze(g, row, col, dir, false);
+    if (input[0] == 'd' && !g[row][col][1]) {  // go east
+      moveE(dir, row, col);
+      printMouseMaze(g, row, col, dir, flood);
+    }
+    
+    // "f" input
+    if (input[0] == 'f') {
+      flood  = !flood;
+      printMouseMaze(g, row, col, dir, flood);
     }
     
     // "solve" input
     if (input[4] == 's' && input[3] == 'o' && input[2] == 'l' && input[1] == 'v' && input[0] == 'e') {
       Serial.println("Sure thing.  I'll begin solving right away.  Thanks for asking so politely!");
+      
       
       
     }
