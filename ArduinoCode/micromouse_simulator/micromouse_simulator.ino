@@ -1,4 +1,6 @@
-const char SIZE = 16;
+#define SIZE 8
+#define UCEN SIZE/2
+#define LCEN UCEN - 1
 
 char g[SIZE][SIZE][5];  // generated maze and flood values
 char m[SIZE][SIZE][5];  // mouse maze and flood values
@@ -21,18 +23,22 @@ void setup() {
   col = 0;
   dir = 0;
   floodFill(g, -1, -1);
+  senseWall(dir, row, col, g, m);
+  matchCells(m);
   printFullMaze(g, row, col);
-  printMouseMaze(g, row, col, dir, flood);
+  printMouseMaze(m, row, col, dir, flood);
   Serial.println("Printed");
 }
 
-void printFullMaze(char b[16][16][5], byte row, byte col) {
+void printFullMaze(char b[SIZE][SIZE][5], byte row, byte col) {
   //----------//Print Full Maze//----------//
   // Prints a succinct version of the full maze
-  Serial.print(" _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _");
-  for (byte i = 15; i < 255; i--) {  // byte is unsigned, so -1 is actually 255; still iterates 16 times
+  for (byte i = 0; i < SIZE; i++) {
+    Serial.print(" _");
+  }
+  for (byte i = SIZE - 1; i < 255; i--) {  // byte is unsigned, so -1 is actually 255; still iterates SIZE times
     Serial.print("\n|");
-    for (byte j = 0; j < 16; j++) {
+    for (byte j = 0; j < SIZE; j++) {
       if (b[i][j][2]) {
         if (i == row && j == col) {
           Serial.print((char)177);
@@ -60,32 +66,32 @@ void printFullMaze(char b[16][16][5], byte row, byte col) {
   Serial.print("\n");
 } // end printFullMaze
 
-boolean floodFill(char b[16][16][5], char row, char col) {
+boolean floodFill(char b[SIZE][SIZE][5], int row, int col) {
   //----------//Flood//----------//
   //fills all flood array spaces with -1
-  for(byte i = 0; i < 16; i++) {
-    for(byte j = 0; j < 16; j++) {
+  for(byte i = 0; i < SIZE; i++) {
+    for(byte j = 0; j < SIZE; j++) {
       b[i][j][4] = -1;
     }
   }
 
   //fills the four goal flood array spaces with 0 by default
   if (row < 0 || col < 0) {
-    b[7][7][4] = 0;
-    b[7][8][4] = 0;
-    b[8][7][4] = 0;
-    b[8][8][4] = 0;
+    b[LCEN][LCEN][4] = 0;
+    b[LCEN][UCEN][4] = 0;
+    b[UCEN][LCEN][4] = 0;
+    b[UCEN][UCEN][4] = 0;
   }
   else {
     b[row][col][4] = 0;
   }
 
   //fills the flood array with values using flood fill logic
-  for (int k = 0; k < 256; k++) {  //byte's range is 0-255, so int will stop infinite loop from being created
-    for (byte i = 0; i < 16; i++) {
-      for (byte j = 0; j < 16; j++) {
+  for (int k = 0; k < SIZE*SIZE; k++) {  //byte's range is 0-255, so int will stop infinite loop from being created
+    for (byte i = 0; i < SIZE; i++) {
+      for (byte j = 0; j < SIZE; j++) {
         if (b[i][j][4] == k) {  //if the flood array space equals k (starting at 0), place k+1 in adjacent flood array spaces
-          if (i < 15) {
+          if (i < SIZE - 1) {
             if (!b[i + 1][j][2] && b[i + 1][j][4] == -1) {  //North
               b[i + 1][j][4] = b[i][j][4] + 1;
             }
@@ -95,7 +101,7 @@ boolean floodFill(char b[16][16][5], char row, char col) {
               b[i - 1][j][4] = b[i][j][4] + 1;
             }
           }
-          if (j < 15) {
+          if (j < SIZE - 1) {
             if (!b[i][j + 1][3] && b[i][j + 1][4] == -1) {  //East
               b[i][j + 1][4] = b[i][j][4] + 1;
             }
@@ -111,17 +117,17 @@ boolean floodFill(char b[16][16][5], char row, char col) {
   }
   
   //checks if all four corners can reach the center
-  if (b[0][0][4] != -1 && b[0][15][4] != -1 && b[15][0][4] != -1 && b[15][15][4] != -1) {
+  if (b[0][0][4] != -1 && b[0][SIZE - 1][4] != -1 && b[SIZE - 1][0][4] != -1 && b[SIZE - 1][SIZE - 1][4] != -1) {
     return 1;
   }
   return 0;
 } // end floodFill
 
-void matchCells(char b[16][16][5]) {
+void matchCells(char b[SIZE][SIZE][5]) {
   //Matching//
   //makes sure each cell has the same walls as the adjacent cells
-  for (byte i = 0; i < 16; i++) {
-    for (byte j = 0; j < 16; j++) {
+  for (byte i = 0; i < SIZE; i++) {
+    for (byte j = 0; j < SIZE; j++) {
       if (i > 0) {
         if (b[i - 1][j][0]) {
           b[i][j][2] = 1;
@@ -130,7 +136,7 @@ void matchCells(char b[16][16][5]) {
           b[i - 1][j][0] = 1;
         }
       }
-      if (i < 15) {
+      if (i < SIZE - 1) {
         if (b[i + 1][j][2]) {
           b[i][j][0] = 1;
         }
@@ -146,7 +152,7 @@ void matchCells(char b[16][16][5]) {
           b[i][j - 1][1] = 1;
         }
       }
-      if (j < 15) {
+      if (j < SIZE - 1) {
         if (b[i][j + 1][3]) {
           b[i][j][1] = 1;
         }
@@ -158,12 +164,12 @@ void matchCells(char b[16][16][5]) {
   }
 } // end matchCells
 
-void generateRandomMaze(char b[16][16][5]) {
+void generateRandomMaze(char b[SIZE][SIZE][5]) {
   byte percent = 30; // percent chance of placing a wall
   //----------//Walls//----------//
   //build a random maze
-  for (byte i = 0; i < 16; i++) {
-    for (byte j = 0; j < 16; j++) {
+  for (byte i = 0; i < SIZE; i++) {
+    for (byte j = 0; j < SIZE; j++) {
       //randomize the bottom and left sides of each cell
       for (byte k = 2; k < 4; k++) {
         b[i][j][k] = (char)(random()%100 < percent);
@@ -176,8 +182,8 @@ void generateRandomMaze(char b[16][16][5]) {
   
   //Center Walls//
   //makes the center squares have walls on all sides
-  for (byte i = 7; i <= 8; i++) {
-    for (byte j = 7; j <= 8; j++) {
+  for (byte i = LCEN; i <= UCEN; i++) {
+    for (byte j = LCEN; j <= UCEN; j++) {
       for (byte k = 0; k < 4; k++) {
         b[i][j][k] = 1;
       }
@@ -187,23 +193,23 @@ void generateRandomMaze(char b[16][16][5]) {
   //Center Opening//
   //places center wall opening
   switch (random()%8) {
-    case 0: b[7][7][3] = 0; break;
-    case 1: b[7][7][2] = 0; break;
-    case 2: b[7][8][2] = 0; break;
-    case 3: b[7][8][1] = 0; break;
-    case 4: b[8][8][1] = 0; break;
-    case 5: b[8][8][0] = 0; break;
-    case 6: b[8][7][0] = 0; break;
-    case 7: b[8][7][3] = 0; break;
+    case 0: b[LCEN][LCEN][3] = 0; break;
+    case 1: b[LCEN][LCEN][2] = 0; break;
+    case 2: b[LCEN][UCEN][2] = 0; break;
+    case 3: b[LCEN][UCEN][1] = 0; break;
+    case 4: b[UCEN][UCEN][1] = 0; break;
+    case 5: b[UCEN][UCEN][0] = 0; break;
+    case 6: b[UCEN][LCEN][0] = 0; break;
+    case 7: b[UCEN][LCEN][3] = 0; break;
   }
 
   //Border//
   //make the edges have walls
-  for (byte i = 0; i < 16; i++) {
+  for (byte i = 0; i < SIZE; i++) {
     b[0][i][2] = 1;
-    b[15][i][0] = 1;
+    b[SIZE - 1][i][0] = 1;
     b[i][0][3] = 1;
-    b[i][15][1] = 1;
+    b[i][SIZE - 1][1] = 1;
   }
   
   //Corners//
@@ -214,31 +220,31 @@ void generateRandomMaze(char b[16][16][5]) {
   b[0][0][3] = 1;
   b[0][1][3] = 1;
   b[1][0][2] = 0;
-  b[0][15][0] = 1;
-  b[0][15][1] = 1;
-  b[0][15][2] = 1;
-  b[0][15][3] = 0;
-  b[0][14][1] = 0;
-  b[1][15][2] = 1;
-  b[15][0][0] = 1;
-  b[15][0][1] = 0;
-  b[15][0][2] = 1;
-  b[15][0][3] = 1;
-  b[15][1][3] = 0;
-  b[14][0][0] = 1;
-  b[15][15][0] = 1;
-  b[15][15][1] = 1;
-  b[15][15][2] = 0;
-  b[15][15][3] = 1;
-  b[15][14][1] = 1;
-  b[14][15][0] = 0;
+  b[0][SIZE - 1][0] = 1;
+  b[0][SIZE - 1][1] = 1;
+  b[0][SIZE - 1][2] = 1;
+  b[0][SIZE - 1][3] = 0;
+  b[0][SIZE - 2][1] = 0;
+  b[1][SIZE - 1][2] = 1;
+  b[SIZE - 1][0][0] = 1;
+  b[SIZE - 1][0][1] = 0;
+  b[SIZE - 1][0][2] = 1;
+  b[SIZE - 1][0][3] = 1;
+  b[SIZE - 1][1][3] = 0;
+  b[SIZE - 2][0][0] = 1;
+  b[SIZE - 1][SIZE - 1][0] = 1;
+  b[SIZE - 1][SIZE - 1][1] = 1;
+  b[SIZE - 1][SIZE - 1][2] = 0;
+  b[SIZE - 1][SIZE - 1][3] = 1;
+  b[SIZE - 1][SIZE - 2][1] = 1;
+  b[SIZE - 2][SIZE - 1][0] = 0;
 
   matchCells(b);
 
   //Pegs//
   //makes sure a wall is on every peg
-  for (byte i = 0; i < 16; i++) {
-    for (byte j = 0; j < 16; j++) {
+  for (byte i = 0; i < SIZE; i++) {
+    for (byte j = 0; j < SIZE; j++) {
       if ((i > 0) && (j > 0)) {
         if (!(b[i][j][3] + b[i][j][2] + b[i - 1][j - 1][0] + b[i - 1][j - 1][1])) {
           switch (random()%4) {
@@ -253,31 +259,31 @@ void generateRandomMaze(char b[16][16][5]) {
   }
   
   //Clear out center peg walls
-  b[7][7][0] = 0;
-  b[7][7][1] = 0;
-  b[8][7][1] = 0;
-  b[8][7][2] = 0;
-  b[8][8][2] = 0;
-  b[8][8][3] = 0;
-  b[7][8][3] = 0;
-  b[7][8][0] = 0;
+  b[LCEN][LCEN][0] = 0;
+  b[LCEN][LCEN][1] = 0;
+  b[UCEN][LCEN][1] = 0;
+  b[UCEN][LCEN][2] = 0;
+  b[UCEN][UCEN][2] = 0;
+  b[UCEN][UCEN][3] = 0;
+  b[LCEN][UCEN][3] = 0;
+  b[LCEN][UCEN][0] = 0;
 
   matchCells(b);
 } // end generateRandomMaze
 
-void clearWalls(char b[16][16][5]) {
+void clearWalls(char b[SIZE][SIZE][5]) {
   //Clean Slate//
   //starts the maze without having any walls anywhere
-  for (byte i = 0; i < 16; i++) {
-    for (byte j = 0; j < 16; j++) {
-      for (byte k = 0; k < 4; k++) {
+  for (byte i = 0; i < SIZE; i++) {
+    for (byte j = 0; j < SIZE; j++) {
+      for (byte k = 0; k < 5; k++) {
         b[i][j][k] = 0;
       }
     }
   }
 } // end clearWalls
 
-void randomMaze(char b[16][16][5]) {
+void randomMaze(char b[SIZE][SIZE][5]) {
   boolean goodGen = false;  //whether or not the maze is solvable
   randomSeed(millis());
   
@@ -290,7 +296,7 @@ void randomMaze(char b[16][16][5]) {
   }
 } // end randomMaze
 
-void printMouseMaze(char b[16][16][5], byte row, byte col, byte dir, boolean flood) {
+void printMouseMaze(char b[SIZE][SIZE][5], byte row, byte col, byte dir, boolean flood) {
   //----------//Print Mouse Maze//----------//
   // Prints the maze that the mouse sees
   // Analyzes what walls connect to each peg and prints the corners and walls of the maze
@@ -299,11 +305,11 @@ void printMouseMaze(char b[16][16][5], byte row, byte col, byte dir, boolean flo
                    (char)32, (char)35, (char)35, (char)35, (char)35, (char)35, (char)35, (char)35};
   int n = 0;
   
-  for (byte i = 15; i < 255; i--) { // for a byte, -1 = 255, so this will still iterate 16 times
+  for (byte i = SIZE - 1; i < 255; i--) { // for a byte, -1 = 255, so this will still iterate 16 times
     
-    for (byte j = 0; j < 16; j++) { // places ceiling of each row
+    for (byte j = 0; j < SIZE; j++) { // places ceiling of each row
       n = 0;
-      if (i < 15) { // if not the top row, adds the north wall for each peg
+      if (i < SIZE - 1) { // if not the top row, adds the north wall for each peg
         n = b[i + 1][j][3];
       }
       if (j > 0) { // if not the first column, adds the west wall for each peg
@@ -313,9 +319,9 @@ void printMouseMaze(char b[16][16][5], byte row, byte col, byte dir, boolean flo
       Serial.print(wall[n]);
       Serial.print(wall[10*b[i][j][0]]);
       Serial.print(wall[10*b[i][j][0]]);
-      if (j == 15) { // places far left wall
+      if (j == SIZE - 1) { // places far left wall
         n = 0;
-        if (i < 15) { // if not the top row, adds north wall
+        if (i < SIZE - 1) { // if not the top row, adds north wall
           n = b[i + 1][j][1];
         }
         n = n + 4*b[i][j][1] + 8*b[i][j][0];
@@ -324,7 +330,7 @@ void printMouseMaze(char b[16][16][5], byte row, byte col, byte dir, boolean flo
     }
     Serial.print("\n");
     
-    for (byte j = 0; j < 16; j++) { // places walls and spaces of each row
+    for (byte j = 0; j < SIZE; j++) { // places walls and spaces of each row
       Serial.print(wall[5*b[i][j][3]]); // prints wall if it exists
       if (i == row && j == col) { // if mouse is in the space, prints according to orientation
         switch (dir) {
@@ -347,14 +353,14 @@ void printMouseMaze(char b[16][16][5], byte row, byte col, byte dir, boolean flo
       else { // else, prints a space
         Serial.print("  ");
       }
-      if (j == 15) {
+      if (j == SIZE - 1) {
         Serial.print(wall[5*b[i][j][1]]);
       }
     }
     Serial.print("\n");
     
     if (i == 0) { // if last row, prints the floor as well
-      for (byte j = 0; j < 16; j++) { // places floor of maze
+      for (byte j = 0; j < SIZE; j++) { // places floor of maze
         n = 0;
         if (j > 0) {
           n = n + 8*b[i][j - 1][2];
@@ -363,7 +369,7 @@ void printMouseMaze(char b[16][16][5], byte row, byte col, byte dir, boolean flo
         Serial.print(wall[n]);
         Serial.print(wall[10*b[i][j][2]]);
         Serial.print(wall[10*b[i][j][2]]);
-        if (j == 15) { // if last column, prints bottom right corner
+        if (j == SIZE - 1) { // if last column, prints bottom right corner
           Serial.print(wall[b[i][j][1] + 8*b[i][j][2]]);
         }
       }
@@ -372,6 +378,84 @@ void printMouseMaze(char b[16][16][5], byte row, byte col, byte dir, boolean flo
     
   }
 } // end printMouseMaze
+
+void autoPilot(char b[SIZE][SIZE][5], char c[SIZE][SIZE][5], byte &row, byte &col, byte &dir, bool flood, float targetrow, float targetcol) {
+  int autodir, autodirnum;
+
+  while (true) {
+
+//    // Floodfills mouse's maze array from different locations depending on the target
+//    if (targetrow == (UCEN + LCEN)/2 && targetcol == (UCEN + LCEN)/2) {
+//      floodFill(c, -1, -1);
+//    }
+//    else {
+//      floodFill(c, (char)targetrow, (char)targetcol);
+//    }
+    floodFill(c, -1, -1);
+
+    if (c[row][col][4] <= 0) { // if target has been reached or is closed off
+      for (int i = LCEN; i <= UCEN; i++) {
+        for (int j = LCEN; j <= UCEN; j++) {
+          for (int k = 0; k < 4; k++) {
+            c[i][j][k] = b[i][j][k]; // set walls of center equal to actual maze walls
+          }
+        }
+      }
+      // Prints the maze(s) to the screen
+      matchCells(c);
+      printFullMaze(b, row, col);
+      printMouseMaze(c, row, col, dir, flood);
+      return;
+    }
+
+    autodir = -1;
+    autodirnum = c[row][col][4];
+    if (row < SIZE - 1) {
+      // If cell above has a lower flood value and is accessible
+      if (c[row + 1][col][4] < autodirnum && !b[row][col][0]) {
+        autodir = 0;
+      }
+    }
+    if (row > 0) {
+      // If cell below ... (same as above)
+      if (c[row - 1][col][4] < autodirnum && !b[row][col][2]) {
+        autodir = 2;
+      }
+    }
+    if (col < SIZE - 1) {
+      // If cell to the right ... (same as the first)
+      if (c[row][col + 1][4] < autodirnum && !b[row][col][1]) {
+        autodir = 1;
+      }
+    }
+    if (col > 0) {
+      // If cell to the left ... (same as the first)
+      if (c[row][col - 1][4] < autodirnum && !b[row][col][3]) {
+        autodir = 3;
+      }
+    }
+    switch (autodir) { // if a valid move has been determined, move there based on its direction
+      case 0: moveN(dir, row, col); break;
+      case 1: moveE(dir, row, col); break;
+      case 2: moveS(dir, row, col); break;
+      case 3: moveW(dir, row, col); break;
+      default: break;
+    }
+
+    senseWall(dir, row, col, b, c);
+    matchCells(c);
+
+    // Prints the maze(s) to the screen
+    printFullMaze(b, row, col);
+    printMouseMaze(c, row, col, dir, flood);
+    Serial.print("Going to: ");
+    Serial.print(targetrow);
+    Serial.print(", ");
+    Serial.println(targetcol);
+    //Sleep(250);
+
+  }
+} // end autoPilot
 
 const int length = 5;  // predefined input array length
 int input[length] = { '\0' };
@@ -412,6 +496,7 @@ void loop() {
       randomMaze(g);
       Serial.println("Generated");
       Serial.println("Printing...");
+      clearWalls(m);
       row = 0;
       col = 0;
       dir = 0;
@@ -425,38 +510,55 @@ void loop() {
     // "w" input
     if (input[0] == 'w' && !g[row][col][0]) {  // if no wall, go north
       moveN(dir, row, col);
-      printMouseMaze(g, row, col, dir, flood);
+      senseWall(dir, row, col, g, m);
+      matchCells(m);
+      printMouseMaze(m, row, col, dir, flood);
     }
     
     // "a" input
     if (input[0] == 'a' && !g[row][col][3]) {  // go west
       moveW(dir, row, col);
-      printMouseMaze(g, row, col, dir, flood);
+      senseWall(dir, row, col, g, m);
+      matchCells(m);
+      printMouseMaze(m, row, col, dir, flood);
     }
     
     // "s" input
     if (input[0] == 's' && !g[row][col][2]) {  // go south
       moveS(dir, row, col);
-      printMouseMaze(g, row, col, dir, flood);
+      senseWall(dir, row, col, g, m);
+      matchCells(m);
+      printMouseMaze(m, row, col, dir, flood);
     }
     
     // "d" input
     if (input[0] == 'd' && !g[row][col][1]) {  // go east
       moveE(dir, row, col);
-      printMouseMaze(g, row, col, dir, flood);
+      senseWall(dir, row, col, g, m);
+      matchCells(m);
+      printMouseMaze(m, row, col, dir, flood);
     }
     
     // "f" input
     if (input[0] == 'f') {
       flood  = !flood;
-      printMouseMaze(g, row, col, dir, flood);
+      printMouseMaze(m, row, col, dir, flood);
+    }
+    
+    // "r" input
+    if (input[0] == 'r') { // simulates rotating the mouse to discover all walls
+      for (byte i = 0; i < 4; i++) {
+        senseWall(dir + i, row, col, g, m);
+      }
+      matchCells(m);
+      printMouseMaze(m, row, col, dir, flood);
     }
     
     // "solve" input
     if (input[4] == 's' && input[3] == 'o' && input[2] == 'l' && input[1] == 'v' && input[0] == 'e') {
       Serial.println("Sure thing.  I'll begin solving right away.  Thanks for asking so politely!");
       
-      
+      autoPilot(g, m, row, col, dir, flood, SIZE/2 - 0.5, SIZE/2 - 0.5);
       
     }
     
