@@ -1,0 +1,14 @@
+char sensorReadL(byte dir, const char m[SIZE][SIZE][5], byte row, byte col) {
+  return m[row][col][(dir + 3)%4];//will return 1 for wall or 0 for space
+}
+char sensorReadF(byte dir, const char m[SIZE][SIZE][5], byte row, byte col) {
+  return m[row][col][dir];
+}
+char sensorReadR(byte dir, const char m[SIZE][SIZE][5], byte row, byte col){
+  return m[row][col][(dir + 1)%4];
+}
+void senseWall(byte dir, byte row, byte col, const char g[SIZE][SIZE][5], char m[SIZE][SIZE][5]) {
+  m[row][col][(dir + 3)%4] = sensorReadL(dir, g, row, col);
+  m[row][col][dir] = sensorReadF(dir, g, row, col);
+  m[row][col][(dir + 1)%4] = sensorReadR(dir, g, row, col);
+}
