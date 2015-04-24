@@ -4,15 +4,25 @@
 
 char g[SIZE][SIZE][5];  // generated maze and flood values
 char m[SIZE][SIZE][5];  // mouse maze and flood values
+boolean p[SIZE][SIZE];  // best path detection array
+boolean pchange;
 byte row = 0;  // mouse global position values
 byte col = 0;
 byte dir = 0;
 boolean flood = false;
 
+const byte buttonPin = 2;     // the number of the pushbutton pin
+const byte ledPin =  13;      // the number of the LED pin
+
 void setup() {
   // begin serial communications at 9600 bits of data per second
   // for communicating with the computer, use one of these rates: 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, or 115200
   Serial.begin(9600);
+  
+  // initialize the LED pin as an output:
+  pinMode(ledPin, OUTPUT);
+  // initialize the pushbutton pin as an input:
+  pinMode(buttonPin, INPUT);
   
   // generate maze at startup
   Serial.println("Generating...");
@@ -381,17 +391,22 @@ void printMouseMaze(char b[SIZE][SIZE][5], byte row, byte col, byte dir, boolean
 
 void autoPilot(char b[SIZE][SIZE][5], char c[SIZE][SIZE][5], byte &row, byte &col, byte &dir, bool flood, float targetrow, float targetcol) {
   int autodir, autodirnum;
-
+  
+  senseWall(dir, row, col, b, c); // senses the initial cell's walls
+  matchCells(c);
+  
+  p[row][col] = true; // cell currently standing in is part of the path
+  pchange = false;
+  
   while (true) {
 
-//    // Floodfills mouse's maze array from different locations depending on the target
-//    if (targetrow == (UCEN + LCEN)/2 && targetcol == (UCEN + LCEN)/2) {
-//      floodFill(c, -1, -1);
-//    }
-//    else {
-//      floodFill(c, (char)targetrow, (char)targetcol);
-//    }
-    floodFill(c, -1, -1);
+    // Floodfills mouse's maze array from different locations depending on the target
+    if ((targetrow == UCEN || targetrow == LCEN) && (targetcol == UCEN || targetcol == LCEN)) {
+      floodFill(c, -1, -1);
+    }
+    else {
+      floodFill(c, (int)targetrow, (int)targetcol);
+    }
 
     if (c[row][col][4] <= 0) { // if target has been reached or is closed off
       for (int i = LCEN; i <= UCEN; i++) {
@@ -444,20 +459,25 @@ void autoPilot(char b[SIZE][SIZE][5], char c[SIZE][SIZE][5], byte &row, byte &co
 
     senseWall(dir, row, col, b, c);
     matchCells(c);
-
+    
+    if (p[row][col] == false) { // if never been on this cell before, indicate path change
+      pchange = true;
+      p[row][col] = true;
+    }
+    
     // Prints the maze(s) to the screen
-    printFullMaze(b, row, col);
-    printMouseMaze(c, row, col, dir, flood);
-    Serial.print("Going to: ");
-    Serial.print(targetrow);
-    Serial.print(", ");
-    Serial.println(targetcol);
+//    printFullMaze(b, row, col);
+//    printMouseMaze(c, row, col, dir, flood);
+//    Serial.print("Going to: ");
+//    Serial.print(targetrow);
+//    Serial.print(", ");
+//    Serial.println(targetcol);
     //Sleep(250);
 
   }
 } // end autoPilot
 
-const int length = 5;  // predefined input array length
+const int length = 6;  // predefined input array length
 int input[length] = { '\0' };
 int clock = (int)millis();  // timing clock
 
@@ -497,6 +517,13 @@ void loop() {
       Serial.println("Generated");
       Serial.println("Printing...");
       clearWalls(m);
+      
+      for (byte i = 0; i < SIZE; i++) {
+        for (byte j = 0; j < SIZE; j++) {
+            p[i][j] = false;
+        }
+      }
+      
       row = 0;
       col = 0;
       dir = 0;
@@ -508,36 +535,36 @@ void loop() {
     }
     
     // "w" input
-    if (input[0] == 'w' && !g[row][col][0]) {  // if no wall, go north
-      moveN(dir, row, col);
-      senseWall(dir, row, col, g, m);
-      matchCells(m);
-      printMouseMaze(m, row, col, dir, flood);
-    }
+//    if (input[0] == 'w' && !g[row][col][0]) {  // if no wall, go north
+//      moveN(dir, row, col);
+//      senseWall(dir, row, col, g, m);
+//      matchCells(m);
+//      printMouseMaze(m, row, col, dir, flood);
+//    }
     
     // "a" input
-    if (input[0] == 'a' && !g[row][col][3]) {  // go west
-      moveW(dir, row, col);
-      senseWall(dir, row, col, g, m);
-      matchCells(m);
-      printMouseMaze(m, row, col, dir, flood);
-    }
+//    if (input[0] == 'a' && !g[row][col][3]) {  // go west
+//      moveW(dir, row, col);
+//      senseWall(dir, row, col, g, m);
+//      matchCells(m);
+//      printMouseMaze(m, row, col, dir, flood);
+//    }
     
     // "s" input
-    if (input[0] == 's' && !g[row][col][2]) {  // go south
-      moveS(dir, row, col);
-      senseWall(dir, row, col, g, m);
-      matchCells(m);
-      printMouseMaze(m, row, col, dir, flood);
-    }
+//    if (input[0] == 's' && !g[row][col][2]) {  // go south
+//      moveS(dir, row, col);
+//      senseWall(dir, row, col, g, m);
+//      matchCells(m);
+//      printMouseMaze(m, row, col, dir, flood);
+//    }
     
     // "d" input
-    if (input[0] == 'd' && !g[row][col][1]) {  // go east
-      moveE(dir, row, col);
-      senseWall(dir, row, col, g, m);
-      matchCells(m);
-      printMouseMaze(m, row, col, dir, flood);
-    }
+//    if (input[0] == 'd' && !g[row][col][1]) {  // go east
+//      moveE(dir, row, col);
+//      senseWall(dir, row, col, g, m);
+//      matchCells(m);
+//      printMouseMaze(m, row, col, dir, flood);
+//    }
     
     // "f" input
     if (input[0] == 'f') {
@@ -546,20 +573,38 @@ void loop() {
     }
     
     // "r" input
-    if (input[0] == 'r') { // simulates rotating the mouse to discover all walls
-      for (byte i = 0; i < 4; i++) {
-        senseWall(dir + i, row, col, g, m);
-      }
-      matchCells(m);
-      printMouseMaze(m, row, col, dir, flood);
-    }
+//    if (input[0] == 'r') { // simulates rotating the mouse to discover all walls
+//      for (byte i = 0; i < 4; i++) {
+//        senseWall(dir + i, row, col, g, m);
+//      }
+//      matchCells(m);
+//      printMouseMaze(m, row, col, dir, flood);
+//    }
     
     // "solve" input
     if (input[4] == 's' && input[3] == 'o' && input[2] == 'l' && input[1] == 'v' && input[0] == 'e') {
+      digitalWrite(ledPin, LOW);
       Serial.println("Sure thing.  I'll begin solving right away.  Thanks for asking so politely!");
       
-      autoPilot(g, m, row, col, dir, flood, SIZE/2 - 0.5, SIZE/2 - 0.5);
+      pchange = true;
+      while (pchange) { // repeat going to center and then back to origin until there is no path change
+        autoPilot(g, m, row, col, dir, flood, UCEN, UCEN);
+        autoPilot(g, m, row, col, dir, flood, 0, 0);
+      }
+//      digitalWrite(ledPin, HIGH);
       
+    }
+    
+    // "center" input
+    if (input[5] == 'c' && input[4] == 'e' && input[3] == 'n' && input[2] == 't' && input[1] == 'e' && input[0] == 'r') {
+      Serial.println("Going to center.");
+      autoPilot(g, m, row, col, dir, flood, UCEN, UCEN);
+    }
+    
+    // "return" input
+    if (input[5] == 'r' && input[4] == 'e' && input[3] == 't' && input[2] == 'u' && input[1] == 'r' && input[0] == 'n') {
+      Serial.println("Going to origin.");
+      autoPilot(g, m, row, col, dir, flood, 0, 0);
     }
     
     clock = (int)millis();
@@ -573,5 +618,15 @@ void loop() {
     delay(100);
     clock = (int)millis();
   }
+  
+  // check if the pushbutton is pressed.
+  // if it is, the buttonState is HIGH:
+//  if (digitalRead(buttonPin) == HIGH) {
+//    while (digitalRead(buttonPin) == HIGH) { // delay until button is depressed
+//      delay(100);
+//    }
+//    Serial.println("Going to center.");
+//    autoPilot(g, m, row, col, dir, flood, UCEN, UCEN);
+//  }
   
 } // end loop
