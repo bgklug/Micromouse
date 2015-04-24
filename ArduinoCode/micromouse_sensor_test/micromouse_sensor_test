@@ -1,0 +1,63 @@
+int sensorValue0, sensorValue1, sensorValue2;
+long offset0, offset1, offset2;
+
+byte triggerOn = 0;
+byte triggerRegion = 10;
+byte wall = false;
+
+void sensorSetup() {
+  int iterations = 1000;
+  offset0 = 0;
+  offset1 = 0;
+  offset2 = 0;
+  
+  for (int i = 0; i < iterations; i++) {
+    offset0 += analogRead(A0);
+    offset1 += analogRead(A1);
+    offset2 += analogRead(A2);
+    delay(2000/iterations);
+  }
+  offset0 /= iterations;
+  offset1 /= iterations;
+  offset2 /= iterations;
+  
+  Serial.println(offset0);
+  Serial.println(offset1);
+  Serial.println(offset2);
+}
+
+void setup() {
+  // initialize serial communication at 9600 bits per second:
+  Serial.begin(9600);
+  
+//  delay(1000);
+  
+  sensorSetup();
+}
+
+void loop() {
+  sensorValue0 = analogRead(A0);
+  sensorValue1 = analogRead(A1);
+  sensorValue2 = analogRead(A2);
+  
+//  Serial.println("");
+  Serial.print(sensorValue0 - offset0);
+  Serial.print("\t(");
+  if (wall) {
+    wall = (sensorValue0 - offset0) >= (triggerOn - triggerRegion);
+  }
+  else {
+    wall = (sensorValue0 - offset0) >= triggerOn;
+  }
+  Serial.print(wall);
+  Serial.println(")");
+//  Serial.print(sensorValue1 - offset1);
+//  Serial.print("\t(");
+//  Serial.print((sensorValue1 - offset1) >= wallDistanceThreshold);
+//  Serial.println(")");
+//  Serial.print(sensorValue2 - offset2);
+//  Serial.print("\t(");
+//  Serial.print((sensorValue2 - offset2) >= wallDistanceThreshold);
+//  Serial.println(")");
+//  delay(100);        // delay in between reads for stability
+}
