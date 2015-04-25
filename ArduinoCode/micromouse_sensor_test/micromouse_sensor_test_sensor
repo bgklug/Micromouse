@@ -2,7 +2,7 @@ byte sensorPin[5] = {0, 1, 2, 3, 4};  // left, leftdiag, center, rightdiag, righ
 int sensorValue[5];
 long offset[5];
 
-byte threshold = -10;
+int threshold = -200;
 
 void sensorSetup() {
   int iterations = 1000;
@@ -26,20 +26,15 @@ void sensorSetup() {
   }
 }
 
-boolean sensorReadL() {
-  return (analogRead(sensorPin[0]) - offset[0]) > threshold;  // will return 1 for wall or 0 for space
+boolean sensorRead(byte side) {
+//  Serial.print("(");
+//  Serial.print(analogRead(sensorPin[side]));
+//  Serial.print(")");
+  return (analogRead(sensorPin[side]) - offset[side]) > threshold;  // will return 1 for wall or 0 for space
 }
 
-boolean sensorReadF() {
-  return (analogRead(sensorPin[3]) - offset[3]) > threshold;
-}
-
-boolean sensorReadR(){
-  return (analogRead(sensorPin[5]) - offset[5]) > threshold;
-}
-
-void senseWall(byte dir, byte row, byte col, char m[SIZE][SIZE][5]) {
-  m[row][col][(dir + 3)%4] = sensorReadL();
-  m[row][col][dir] = sensorReadF();
-  m[row][col][(dir + 1)%4] = sensorReadR();
+void senseWall(byte dir, byte row, byte col, char m[16][16][5]) {
+  m[row][col][(dir + 3)%4] = sensorRead(0);
+  m[row][col][dir] = sensorRead(2);
+  m[row][col][(dir + 1)%4] = sensorRead(4);
 }
