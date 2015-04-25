@@ -5,6 +5,8 @@ AccelStepper motorL(4, 12, 11, 10, 9);
 AccelStepper motorR(4, 4, 5, 6, 7);
 float spd = 500;
 int i=0;
+int counterForward = 0;
+int counterTurn = 0;
 void forward(float);
 void backward(float);
 void turn_right(float);
@@ -23,9 +25,25 @@ void setup()
 }
 void loop()
 {
-  if (Serial.available()>0)
+  delay(1000);
+  forward(spd/2);
+  delay(100);
+  forward(spd/2);
+  delay(100);
+  forward(spd/2);
+  delay(100);
+  turn_right(spd/2);
+  delay(100);
+  forward(spd/2);
+  delay(100);
+  forward(spd/2);
+  delay(100);
+  turn_right(spd/2);
+  delay(100);
+  
+  /*if (Serial.available()>0)
   {
-    
+   Serial.println("Please enter 1 for forward, 2 for backward, 3 for turn right, and 4 for trun left");
    int input = Serial.read();
    switch(input){
     case 49:
@@ -48,7 +66,7 @@ void loop()
      break;
    }
    delay(2);
-  }
+  }*/
   //if (Serial.available()>0)
   //{
   //  Serial.println(5);
@@ -62,56 +80,63 @@ void forward(float spd)
 {
   int i=0;
   motorR.setSpeed(spd*-1);
-  motorL.setSpeed(spd);
-  while (i<135)
+  motorL.setSpeed(spd*-1);
+  if(counterForward >= 4)
+  {
+    counterForward -= 4;
+    motorR.runSpeed();
+    motorL.runSpeed();
+  }
+  else if(counterForward <= -4)
+  {
+    i++;
+   counterForward +=4; 
+  }
+  while (i<143)
   {
     
     motorR.runSpeed();
     motorL.runSpeed();
     i++;    
-    delay(2);
+    delay(7);
   }
+  counterForward++;
 }
 
 void backward(float spd)
 {
-  int i=0;
-  motorR.setSpeed(spd);
-  motorL.setSpeed(spd*-1);
-  while (i<135)
-  {
-    motorR.runSpeed();
-    motorL.runSpeed();
-    i++;
-    delay(2);
-  }
+  forward(spd*-1);
+  counterForward -= 2;
 }
 
 void turn_right(float spd)
 {
   int i=0;
-  motorR.setSpeed(spd);
+  motorR.setSpeed(spd*-1);
   motorL.setSpeed(spd);
-  while(i<92) //alter this value based on the amount of rotation
+  if(counterTurn > 3)
+  {
+    counterTurn -=4;
+    i--;
+  }
+  else if(counterTurn < -3)
+  {
+    counterTurn +=4;
+    i++;
+  }
+  while(i<66) //alter this value based on the amount of rotation
   {
     motorR.runSpeed();
     motorL.runSpeed();
     i++;
-    delay(2);
+    delay(7);
   }
+  counterTurn++;
 }
 
 void turn_left(float spd)
 {
-  int i=0;
-  
-  motorR.setSpeed(spd*-1);
-  motorL.setSpeed(spd*-1);
-  while(i<92) //alter this value based on the amount of rotation
-  {
-    motorR.runSpeed();
-    motorL.runSpeed();
-    i++;
-    delay(2);
-  }
+  turn_right(spd*-1);
+  counterTurn--;
+  counterTurn--;
 }
