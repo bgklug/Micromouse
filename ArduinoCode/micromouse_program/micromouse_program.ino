@@ -1,4 +1,4 @@
-#define SIZE 4          // size of one side of square maze
+#define SIZE 8          // size of one side of square maze
 #define UCEN SIZE/2     // upper center goal value
 #define LCEN UCEN - 1   // lowe rcenter goal value
 
@@ -34,6 +34,28 @@ void setup() {
   senseWall(dir, row, col, m);              // initial wall-sense at start position (*reasoning*)
   matchCells(m);                            // make sure all cell walls match up
   printMouseMaze(m, row, col, dir, flood);  // print advanced maze the mouse sees
+  
+  blinkLED(500, 3);
+  
+  do { // repeat going to center and then back to origin until there is no path change
+    autoPilot(m, row, col, dir, flood, UCEN, UCEN);
+    autoPilot(m, row, col, dir, flood, 0, 0);
+  } while (pchange);
+  
+  blinkLED(100, 10);  // indicates done solving
+  delay(1000);
+  
+  autoPilot(m, row, col, dir, flood, UCEN, UCEN);
+  blinkLED(100, 20);  // indicates done with maze
+}
+
+void blinkLED(int timeOnOff, byte iterations) {
+  for (byte i = 0; i < iterations; i++) {
+    digitalWrite(ledPin, HIGH);
+    delay(timeOnOff);
+    digitalWrite(ledPin, LOW);
+    delay(timeOnOff);
+  }
 }
 
 boolean floodFill(char b[SIZE][SIZE][5], int row, int col) {
@@ -290,13 +312,16 @@ void autoPilot(char c[SIZE][SIZE][5], byte &row, byte &col, byte &dir, bool floo
       }
     }
     switch (autodir) { // if a valid move has been determined, move there based on its direction
-      case 0: moveN(dir, row, col); break;
-      case 1: moveE(dir, row, col); break;
-      case 2: moveS(dir, row, col); break;
-      case 3: moveW(dir, row, col); break;
+      case 0: moveN(dir, row, col); blinkLED(250, 1); break;
+      case 1: moveE(dir, row, col); blinkLED(250, 2); break;
+      case 2: moveS(dir, row, col); blinkLED(250, 3); break;
+      case 3: moveW(dir, row, col); blinkLED(250, 4); break;
       default: break;
     }
-
+    
+    delay(5000);
+    blinkLED(1000, 1);
+    
     senseWall(dir, row, col, c);  // sense current cell's walls
     matchCells(c);
     
@@ -307,12 +332,11 @@ void autoPilot(char c[SIZE][SIZE][5], byte &row, byte &col, byte &dir, bool floo
     
     // Prints the maze(s) to the screen
 //    printFullMaze(b, row, col);
-//    printMouseMaze(c, row, col, dir, flood);
+    printMouseMaze(c, row, col, dir, flood);
 //    Serial.print("Going to: ");
 //    Serial.print(targetrow);
 //    Serial.print(", ");
 //    Serial.println(targetcol);
-    //Sleep(250);
 
   }
 } // end autoPilot
