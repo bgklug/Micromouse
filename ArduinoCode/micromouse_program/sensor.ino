@@ -2,7 +2,7 @@ byte sensorPin[5] = {0, 1, 2, 3, 4};  // left, leftdiag, center, rightdiag, righ
 int sensorValue[5];
 long offset[5];
 
-int threshold = -10;
+int threshold = -200;
 
 void sensorSetup() {
   int iterations = 1000;
@@ -30,7 +30,9 @@ boolean sensorRead(byte side) {
 //  Serial.print("(");
 //  Serial.print(analogRead(sensorPin[side]));
 //  Serial.print(")");
-  return (analogRead(sensorPin[side]) - offset[side]) > threshold;  // will return 1 for wall or 0 for space
+//  Serial.println((analogRead(sensorPin[side]) - offset[side]) > threshold);
+//  return (analogRead(sensorPin[side]) - offset[side]) > threshold;  // will return 1 for wall or 0 for space
+  return analogRead(sensorPin[side]) > 50;  // will return 1 for wall or 0 for space
 }
 
 void senseWall(byte dir, byte row, byte col, char m[SIZE][SIZE][5]) {
