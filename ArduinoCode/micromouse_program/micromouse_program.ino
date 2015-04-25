@@ -1,4 +1,4 @@
-#define SIZE 8          // size of one side of square maze
+#define SIZE 4          // size of one side of square maze
 #define UCEN SIZE/2     // upper center goal value
 #define LCEN UCEN - 1   // lowe rcenter goal value
 
@@ -13,7 +13,25 @@ boolean flood = false;  // toggle display of flood values
 const byte buttonPin = 2;     // the number of the pushbutton pin
 const byte ledPin =  13;      // the number of the LED pin
 
+#include <AccelStepper.h>
+AccelStepper motorL(4, 12, 11, 10, 9);
+AccelStepper motorR(4, 4, 5, 6, 7);
+float spd = 500;
+int i=0;
+int counterForward = 0;
+int counterTurn = 0;
+void forward(float);
+void backward(float);
+void turn_right(float);
+void turn_left(float);
+
 void setup() {
+  
+  motorL.setMaxSpeed(1000.0);  // motor setup
+  motorL.setSpeed(spd);
+  motorR.setMaxSpeed(1000.0);
+  motorR.setSpeed(spd);
+  
   // begin serial communications at 9600 bits of data per second
   // for communicating with the computer, use one of these rates: 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, or 115200
   Serial.begin(9600);
