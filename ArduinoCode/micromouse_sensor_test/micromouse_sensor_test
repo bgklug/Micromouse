@@ -5,7 +5,7 @@ byte triggerOn = 0;
 byte triggerRegion = 10;
 byte wall = false;
 
-void sensorSetup() {
+void sensorSetup2() {
   int iterations = 1000;
   offset0 = 0;
   offset1 = 0;
@@ -36,21 +36,13 @@ void setup() {
 }
 
 void loop() {
-  sensorValue0 = analogRead(A0);
-  sensorValue1 = analogRead(A1);
-  sensorValue2 = analogRead(A2);
-  
 //  Serial.println("");
-  Serial.print(sensorValue0 - offset0);
-  Serial.print("\t(");
-  if (wall) {
-    wall = (sensorValue0 - offset0) >= (triggerOn - triggerRegion);
-  }
-  else {
-    wall = (sensorValue0 - offset0) >= triggerOn;
-  }
-  Serial.print(wall);
-  Serial.println(")");
+  Serial.print("L: ");
+  Serial.print(sensorRead(4));
+  Serial.print(", F: ");
+  Serial.print(sensorRead(2));
+  Serial.print(", R: ");
+  Serial.println(sensorRead(0));
 //  Serial.print(sensorValue1 - offset1);
 //  Serial.print("\t(");
 //  Serial.print((sensorValue1 - offset1) >= wallDistanceThreshold);
@@ -59,5 +51,5 @@ void loop() {
 //  Serial.print("\t(");
 //  Serial.print((sensorValue2 - offset2) >= wallDistanceThreshold);
 //  Serial.println(")");
-//  delay(100);        // delay in between reads for stability
+  delay(100);        // delay in between reads for stability
 }
