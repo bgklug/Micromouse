@@ -48,6 +48,8 @@ void setup() {
   // initialize the pushbutton pin as an input:
   pinMode(buttonPin, INPUT);
   
+    stationaryDirectionCorrection(spd);
+  
   row = 0;                                  // reset position variables
   col = 0;
   dir = 2;                                  // faces SOUTH initially
@@ -72,10 +74,10 @@ void setup() {
 
 void blinkLED(int timeOnOff, byte iterations) {
   for (byte i = 0; i < iterations; i++) {
-    digitalWrite(ledPin, HIGH);
-    delay(timeOnOff);
-    digitalWrite(ledPin, LOW);
-    delay(timeOnOff);
+//    digitalWrite(ledPin, HIGH);
+//    delay(timeOnOff);
+//    digitalWrite(ledPin, LOW);
+//    delay(timeOnOff);
   }
 }
 
@@ -340,7 +342,8 @@ void autoPilot(char c[SIZE][SIZE][5], byte &row, byte &col, byte &dir, bool floo
       default: break;
     }
     
-    delay(5000);
+    stationaryDirectionCorrection(spd);
+    delay(1000);
     blinkLED(1000, 1);
     
     senseWall(dir, row, col, c);  // sense current cell's walls
