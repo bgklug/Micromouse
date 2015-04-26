@@ -1,92 +1,62 @@
 void moveN(byte &dir, byte &row, byte &col) {
-  if (dir == 0) {
-    moveF(dir, row, col);
+  switch (dir) {
+    case 1:
+      turnL(dir);  // turn left 1 time if facing EAST
+      break;
+    case 2:
+      turnR(dir);  // turn right 2 times if facing SOUTH
+    case 3:
+      turnR(dir);  // turn right 1 time if facing WEST
   }
-  else if (dir == 2) {
-    turnR(dir);
-    turnR(dir);
-    moveF(dir, row, col);
-  }
-  else if (dir == 1) {
-    turnL(dir);
-    moveF(dir, row, col);
-  }
-  else if (dir == 3) {
-    turnR(dir);
-    moveF(dir, row, col);
-  }
+  moveF(dir, row, col);
 }
 
 void moveE(byte &dir, byte &row, byte &col){
-  if (dir == 1) {
-    moveF(dir, row, col);
+  switch (dir) {
+    case 2:
+      turnL(dir);  // turn left 1 time if facing SOUTH
+      break;
+    case 3:
+      turnR(dir);  // turn right 2 times if facing WEST
+    case 0:
+      turnR(dir);  // turn right 1 time if facing NORTH
   }
-  else if (dir == 3) {
-    turnR(dir);
-    turnR(dir);
-    moveF(dir, row, col);
-  }
-  else if (dir == 2) {
-    turnL(dir);
-    moveF(dir, row, col);
-  }
-  else if (dir == 0) {
-    turnR(dir);
-    moveF(dir, row, col);
-  }
+  moveF(dir, row, col);
 }
 
 void moveS(byte &dir, byte &row, byte &col) {
-  if (dir == 2) {
-    moveF(dir, row, col);
+  switch (dir) {
+    case 3:
+      turnL(dir);  // turn left 1 time if facing WEST
+      break;
+    case 0:
+      turnR(dir);  // turn right 2 times if facing NORTH
+    case 1:
+      turnR(dir);  // turn right 1 time if facing EAST
   }
-  else if (dir == 0) {
-    turnR(dir);
-    turnR(dir);
-    moveF(dir, row, col);
-  }
-  else if (dir == 3) {
-    turnL(dir);
-    moveF(dir, row, col);
-  }
-  else if (dir == 1) {
-    turnR(dir);
-    moveF(dir, row, col);
-  }
+  moveF(dir, row, col);
 }
 
 void moveW(byte &dir, byte &row, byte &col) {
-  if (dir == 3) {
-    moveF(dir, row, col);
+  switch (dir) {
+    case 0:
+      turnL(dir);  // turn left 1 time if facing NORTH
+      break;
+    case 1:
+      turnR(dir);  // turn right 2 times if facing EAST
+    case 2:
+      turnR(dir);  // turn right 1 time if facing SOUTH
   }
-  else if (dir == 1) {
-    turnR(dir);
-    turnR(dir);
-    moveF(dir, row, col);
-  }
-  else if (dir == 0) {
-    turnL(dir);
-    moveF(dir, row, col);
-  }
-  else if (dir == 2) {
-    turnR(dir);
-    moveF(dir, row, col);
-  }
+  moveF(dir, row, col);
 }
 
 void moveF(byte dir, byte &row, byte &col) {
-  forward(spd/2);
-  if (dir == 0) {
-    row++;
-  }
-  else if (dir == 2) {
-    row--;
-  }
-  else if (dir == 1) {
-    col++;
-  }
-  else if (dir == 3) {
-    col--;
+  forward(spd);
+  switch (dir) {
+    case 0: row++; break;
+    case 1: col++; break;
+    case 2: row--; break;
+    case 3: col--; break;
   }
 }
 
@@ -95,12 +65,12 @@ void moveB() {
 }
 
 void turnR(byte & dir) {
-  turn_right(spd/2);
+  turn_right(spd);
   dir = (dir + 1)%4;
 }
 
 void turnL(byte & dir) {
-  turn_left(spd/2);
+  turn_left(spd);
   dir = (dir + 3)%4;
 }
 
@@ -117,7 +87,7 @@ void forward(float spd) {
     i++;
     counterForward += 4;
   }
-  while (i < 143) {
+  while (i < 140) {
     motorR.runSpeed();
     motorL.runSpeed();
     i++;    
@@ -143,7 +113,7 @@ void turn_right(float spd) {
     counterTurn += 4;
     i++;
   }
-  while (i < 66) { //alter this value based on the amount of rotation
+  while (i < 65) { //alter this value based on the amount of rotation
     motorR.runSpeed();
     motorL.runSpeed();
     i++;
@@ -156,4 +126,56 @@ void turn_left(float spd) {
   turn_right(spd*-1);
   counterTurn--;
   counterTurn--;
+}
+
+void stationaryDirectionCorrection(float spd) {
+//  int reads[2] = {1024, 1024};
+//  int maxes[2];
+//  int i = 0;
+//  int noiseThreshold = 5;
+//  
+////  while (true) {
+//  reads[i] = analogRead(i);
+//  maxes[i] = 0;
+//  while (reads[i] + noiseThreshold > maxes[i] && reads[i] > 50) {  // attempt to correct by turning right
+//    motorR.setSpeed(-spd);
+//    motorL.setSpeed(spd);
+//    motorR.move(1);
+//    motorL.move(-1);
+////    for (byte j = 0; j < 1; j++) {
+//      motorR.runSpeedToPosition();
+//      motorL.runSpeedToPosition();
+//      delay(7);
+////    }
+//    
+//    if (reads[i] > maxes[i]) {
+//      maxes[i] = reads[i];
+//    }
+//    reads[i] = analogRead(i);
+//    Serial.print(reads[i]);
+//    Serial.print(", ");
+//    Serial.println(maxes[i]);
+//  }
+//  Serial.println("end");
+//  
+//  reads[i] = analogRead(i);
+//  maxes[i] = 0;
+//  while (reads[i] + noiseThreshold > maxes[i] && reads[i] > 50) {  // attempt to correct by turning left
+//    motorR.setSpeed(spd);
+//    motorL.setSpeed(-spd);
+//    motorR.move(-1);
+//    motorL.move(1);
+////    for (byte j = 0; j < 1; j++) {
+//      motorR.runSpeedToPosition();
+//      motorL.runSpeedToPosition();
+//      delay(7);
+////    }
+//    
+//    if (reads[i] > maxes[i]) {
+//      maxes[i] = reads[i];
+//    }
+//    reads[i] = analogRead(i);
+//  }
+////  delay(1000);
+////  }
 }
