@@ -13,6 +13,7 @@ boolean flood = false;  // toggle display of flood values
 const byte buttonPin = 2;     // the number of the pushbutton pin
 const byte ledPin =  13;      // the number of the LED pin
 
+// MOTOR STUFF //
 #include <AccelStepper.h>
 AccelStepper motorL(4, 12, 11, 10, 9);
 AccelStepper motorR(4, 4, 5, 6, 7);
@@ -24,6 +25,8 @@ void forward(float);
 void backward(float);
 void turn_right(float);
 void turn_left(float);
+// end MOTOR STUFF //
+
 
 void setup() {
   
