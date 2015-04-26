@@ -1,4 +1,4 @@
-byte sensorPin[5] = {0, 1, 2, 3, 4};  // left, leftdiag, center, rightdiag, right
+byte sensorPin[5] = {0, 1, 2, 3, 4};  // right, rightdiag, center, leftdiag, left
 int sensorValue[5];
 long offset[5];
 
