@@ -76,6 +76,8 @@ void turnL(byte & dir) {
 
 void forward(float spd) {
   int i = 0;
+  int sensor[5];  // 0 is right, 2 is center, 4 is left
+  
   motorR.setSpeed(spd*-1);
   motorL.setSpeed(spd*-1);
   if (counterForward >= 4) {
@@ -88,10 +90,27 @@ void forward(float spd) {
     counterForward += 4;
   }
   while (i < 140) {
-    motorR.runSpeed();
-    motorL.runSpeed();
-    i++;    
-    delay(7);
+    sensor[0] = analogRead(0);
+//    sensor[2] = analogRead(2);
+    sensor[4] = analogRead(4);
+    
+    if (sensor[0] >= 400) {
+      motorL.runSpeed();
+      delay(7);
+    }
+    if (sensor[4] >= 400) {
+      motorR.runSpeed();
+      delay(7);
+    }
+    
+    motorR.setSpeed(spd*-1);
+    motorL.setSpeed(spd*-1);
+//    if (sensor[2] < 700) {
+      motorR.runSpeed();
+      motorL.runSpeed();
+      i++;
+      delay(7);
+//    }
   }
   counterForward++;
 }
