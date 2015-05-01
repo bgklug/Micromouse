@@ -32,7 +32,7 @@ boolean sensorRead(byte side) {
 //  Serial.print(")");
 //  Serial.println((analogRead(sensorPin[side]) - offset[side]) > threshold);
 //  return (analogRead(sensorPin[side]) - offset[side]) > threshold;  // will return 1 for wall or 0 for space
-  return analogRead(sensorPin[side]) > 50;  // will return 1 for wall or 0 for space
+  return analogRead(sensorPin[side]) > 100;  // will return 1 for wall or 0 for space
 }
 
 void senseWall(byte dir, byte row, byte col, char m[SIZE][SIZE][5]) {
