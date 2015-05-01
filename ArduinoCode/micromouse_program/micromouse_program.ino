@@ -1,4 +1,4 @@
-#define SIZE 4          // size of one side of square maze
+#define SIZE 8          // size of one side of square maze
 #define UCEN SIZE/2     // upper center goal value
 #define LCEN UCEN - 1   // lowe rcenter goal value
 
@@ -52,7 +52,7 @@ void setup() {
   
   row = 0;                                  // reset position variables
   col = 0;
-  dir = 2;                                  // faces SOUTH initially
+  dir = 0;                                  // faces SOUTH initially
   floodFill(m, -1, -1);                     // initial flood-fill of mouse maze
   senseWall(dir, row, col, m);              // initial wall-sense at start position (*reasoning*)
   matchCells(m);                            // make sure all cell walls match up
@@ -61,14 +61,14 @@ void setup() {
   blinkLED(500, 3);
   
   do { // repeat going to center and then back to origin until there is no path change
-    autoPilot(m, row, col, dir, flood, UCEN, UCEN);
-    autoPilot(m, row, col, dir, flood, 0, 0);
+    autoPilot(m, row, col, dir, flood, UCEN, UCEN, false);
+    autoPilot(m, row, col, dir, flood, 0, 0, false);
   } while (pchange);
   
   blinkLED(100, 10);  // indicates done solving
   delay(1000);
   
-  autoPilot(m, row, col, dir, flood, UCEN, UCEN);
+  autoPilot(m, row, col, dir, flood, UCEN, UCEN, false);
   blinkLED(100, 20);  // indicates done with maze
 }
 
@@ -274,7 +274,7 @@ void printMouseMaze(char b[SIZE][SIZE][5], byte row, byte col, byte dir, boolean
   }
 } // end printMouseMaze
 
-void autoPilot(char c[SIZE][SIZE][5], byte &row, byte &col, byte &dir, bool flood, float targetrow, float targetcol) { // c is mouse maze
+void autoPilot(char c[SIZE][SIZE][5], byte &row, byte &col, byte &dir, bool flood, float targetrow, float targetcol, boolean delayOn) { // c is mouse maze
   byte autodir, autodirnum;  // stores next direction value and lowest floodfill value of surrounding cells
   
   senseWall(dir, row, col, c); // senses the initial cell's walls
@@ -294,13 +294,18 @@ void autoPilot(char c[SIZE][SIZE][5], byte &row, byte &col, byte &dir, bool floo
     }
 
     if (c[row][col][4] <= 0) { // if target has been reached (0) or is closed off (-1)
-//      for (int i = LCEN; i <= UCEN; i++) {
-//        for (int j = LCEN; j <= UCEN; j++) {
-//          for (int k = 0; k < 4; k++) {
-//            c[i][j][k] = b[i][j][k]; // set walls of center equal to actual maze walls
-//          }
-//        }
-//      }
+      if ((targetrow == UCEN || targetrow == LCEN) && (targetcol == UCEN || targetcol == LCEN)) {  // if target is somewhere in center, ...
+        c[LCEN][LCEN][2] = 1;                                                                      // set center walls
+        c[LCEN][LCEN][3] = 1;
+        c[LCEN][UCEN][3] = 1;
+        c[LCEN][UCEN][0] = 1;
+        c[UCEN][UCEN][0] = 1;
+        c[UCEN][UCEN][1] = 1;
+        c[UCEN][LCEN][1] = 1;
+        c[UCEN][LCEN][2] = 1;
+        
+        c[row][col][(dir + 2)%4] = 0;  // wall behind mouse is open
+      }
       // Prints the maze(s) to the screen
       matchCells(c);
 //      printFullMaze(b, row, col);
@@ -343,7 +348,9 @@ void autoPilot(char c[SIZE][SIZE][5], byte &row, byte &col, byte &dir, bool floo
     }
     
     stationaryDirectionCorrection(spd);
-    delay(1000);
+    if (delayOn) {
+      delay(1000);
+    }
     blinkLED(1000, 1);
     
     senseWall(dir, row, col, c);  // sense current cell's walls
@@ -420,8 +427,8 @@ void loop() {
       Serial.println("Sure thing.  I'll begin solving right away.  Thanks for asking so politely!");
       
       do { // repeat going to center and then back to origin until there is no path change
-        autoPilot(m, row, col, dir, flood, UCEN, UCEN);
-        autoPilot(m, row, col, dir, flood, 0, 0);
+        autoPilot(m, row, col, dir, flood, UCEN, UCEN, true);
+        autoPilot(m, row, col, dir, flood, 0, 0, true);
       } while (pchange);
 //      digitalWrite(ledPin, HIGH);
       
@@ -430,13 +437,13 @@ void loop() {
     // "center" input
     if (input[5] == 'c' && input[4] == 'e' && input[3] == 'n' && input[2] == 't' && input[1] == 'e' && input[0] == 'r') {
       Serial.println("Going to center.");
-      autoPilot(m, row, col, dir, flood, UCEN, UCEN);
+      autoPilot(m, row, col, dir, flood, UCEN, UCEN, true);
     }
     
     // "return" input
     if (input[5] == 'r' && input[4] == 'e' && input[3] == 't' && input[2] == 'u' && input[1] == 'r' && input[0] == 'n') {
       Serial.println("Going to origin.");
-      autoPilot(m, row, col, dir, flood, 0, 0);
+      autoPilot(m, row, col, dir, flood, 0, 0, true);
     }
     
     clock = (int)millis();  // reset clock
