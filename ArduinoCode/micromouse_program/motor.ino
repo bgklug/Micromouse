@@ -89,29 +89,50 @@ void forward(float spd) {
     i++;
     counterForward += 4;
   }
-  while (i < 140) {
+  while (i < 139) {
     sensor[0] = analogRead(0);
-//    sensor[2] = analogRead(2);
+    sensor[1] = analogRead(1);
+    sensor[2] = analogRead(2);
+    sensor[3] = analogRead(3);
     sensor[4] = analogRead(4);
     
-    if (sensor[0] >= 400) {
+    if (sensor[0] >= 350 || sensor[1] >= 350) {
       motorL.runSpeed();
       delay(7);
     }
-    if (sensor[4] >= 400) {
+    if (sensor[4] >= 350 || sensor[3] >= 350) {
       motorR.runSpeed();
       delay(7);
     }
     
     motorR.setSpeed(spd*-1);
     motorL.setSpeed(spd*-1);
-//    if (sensor[2] < 700) {
+    if (sensor[2] < 750) {
       motorR.runSpeed();
       motorL.runSpeed();
-      i++;
-      delay(7);
-//    }
+    }
+    i++;
+    delay(7);
   }
+  
+  sensor[0] = analogRead(0);
+  sensor[2] = analogRead(2);
+  sensor[4] = analogRead(4);
+  
+  if (sensor[0] >= 350) {
+    motorL.runSpeed();
+  }
+  if (sensor[4] >= 350) {
+    motorR.runSpeed();
+  }
+  
+  motorR.setSpeed(spd*-1);
+  motorL.setSpeed(spd*-1);
+  if (sensor[2] < 700) {
+    motorR.runSpeed();
+    motorL.runSpeed();
+  }
+  i++;
   counterForward++;
 }
 
