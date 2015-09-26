@@ -39,16 +39,16 @@ void setup() {
   // for communicating with the computer, use one of these rates: 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, or 115200
   Serial.begin(9600);
   
-  Serial.println("Calibrating sensors...");
-  sensorSetup();
-  Serial.println("Sensors calibrated.");
+//  Serial.println("Calibrating sensors...");
+//  sensorSetup();
+//  Serial.println("Sensors calibrated.");
   
   // initialize the LED pin as an output:
   pinMode(ledPin, OUTPUT);
   // initialize the pushbutton pin as an input:
   pinMode(buttonPin, INPUT);
   
-    stationaryDirectionCorrection(spd);
+//  stationaryDirectionCorrection(spd);
   
   row = 0;                                  // reset position variables
   col = 0;
@@ -73,12 +73,12 @@ void setup() {
 }
 
 void blinkLED(int timeOnOff, byte iterations) {
-  for (byte i = 0; i < iterations; i++) {
+//  for (byte i = 0; i < iterations; i++) {
 //    digitalWrite(ledPin, HIGH);
 //    delay(timeOnOff);
 //    digitalWrite(ledPin, LOW);
 //    delay(timeOnOff);
-  }
+//  }
 }
 
 boolean floodFill(char b[SIZE][SIZE][5], int row, int col) {

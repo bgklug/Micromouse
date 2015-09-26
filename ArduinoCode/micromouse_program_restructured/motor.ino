@@ -1,4 +1,10 @@
-void moveN(byte &dir, byte &row, byte &col, bool finalRun) {
+/*
+ * Movement/motor controlling
+ */
+
+//Movement relative to the maze
+//moveN, moveE, moveS, moveW, turnR, turnL all record the movement in the maze and the direction of the mouse
+void moveN(unsigned char & dir, unsigned char & row, unsigned char & col, bool finalRun) {
   switch (dir) {
     case 1:
       turnL(dir);  // turn left 1 time if facing EAST
@@ -11,7 +17,7 @@ void moveN(byte &dir, byte &row, byte &col, bool finalRun) {
   moveF(dir, row, col, finalRun);
 }
 
-void moveE(byte &dir, byte &row, byte &col, bool finalRun){
+void moveE(unsigned char &dir, unsigned char &row, unsigned char &col, bool finalRun){
   switch (dir) {
     case 2:
       turnL(dir);  // turn left 1 time if facing SOUTH
@@ -24,7 +30,7 @@ void moveE(byte &dir, byte &row, byte &col, bool finalRun){
   moveF(dir, row, col, finalRun);
 }
 
-void moveS(byte &dir, byte &row, byte &col, bool finalRun) {
+void moveS(unsigned char &dir, unsigned char &row, unsigned char &col, bool finalRun) {
   switch (dir) {
     case 3:
       turnL(dir);  // turn left 1 time if facing WEST
@@ -37,7 +43,7 @@ void moveS(byte &dir, byte &row, byte &col, bool finalRun) {
   moveF(dir, row, col, finalRun);
 }
 
-void moveW(byte &dir, byte &row, byte &col, bool finalRun) {
+void moveW(unsigned char &dir, unsigned char &row, unsigned char &col, bool finalRun) {
   switch (dir) {
     case 0:
       turnL(dir);  // turn left 1 time if facing NORTH
@@ -50,7 +56,7 @@ void moveW(byte &dir, byte &row, byte &col, bool finalRun) {
   moveF(dir, row, col, finalRun);
 }
 
-void moveF(byte dir, byte &row, byte &col, bool finalRun) {
+void moveF(unsigned char dir, unsigned char &row, unsigned char &col, bool finalRun) {
   if (!finalRun) {  // if on the final run, don't move the motors
     forward(spd);
   }
@@ -62,22 +68,22 @@ void moveF(byte dir, byte &row, byte &col, bool finalRun) {
   }
 }
 
-void moveB() {
-
-}
-
-void turnR(byte & dir) {
+void turnR(unsigned char & dir) {
   turn_right(spd);
   dir = (dir + 1)%4;
 }
 
-void turnL(byte & dir) {
+void turnL(unsigned char & dir) {
   turn_left(spd);
   dir = (dir + 3)%4;
 }
 
+//end maze relative movement
+
+//Movement relative to mouse
 void forward(float spd) {
-  int i = 0;
+  unsigned char forwardStep = 139;
+  unsigned char i = 0;
   int sensor[5];  // 0 is right, 2 is center, 4 is left
   
   motorR.setSpeed(spd*-1);
@@ -91,7 +97,7 @@ void forward(float spd) {
     i++;
     counterForward += 4;
   }
-  while (i < 139) {
+  while (i < forwardStep) {
     sensor[0] = analogRead(0);
     sensor[1] = analogRead(1);
     sensor[2] = analogRead(2);
@@ -144,7 +150,8 @@ void backward(float spd)  {
 }
 
 void turn_right(float spd) {
-  int i = 0;
+  char turnStep = 65;
+  char i = 0;
   motorR.setSpeed(spd*-1);
   motorL.setSpeed(spd);
   if (counterTurn > 3) {
@@ -155,7 +162,7 @@ void turn_right(float spd) {
     counterTurn += 4;
     i++;
   }
-  while (i < 65) { //alter this value based on the amount of rotation
+  while (i < turnStep) { //alter this value based on the amount of rotation
     motorR.runSpeed();
     motorL.runSpeed();
     i++;

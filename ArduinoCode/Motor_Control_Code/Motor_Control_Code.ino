@@ -3,7 +3,7 @@
 #include <AccelStepper.h>
 AccelStepper motorL(4, 12, 11, 10, 9);
 AccelStepper motorR(4, 4, 5, 6, 7);
-float spd = 500;
+float spd = 1000;
 int i=0;
 int counterForward = 0;
 int counterTurn = 0;
@@ -25,23 +25,23 @@ void setup()
 }
 void loop()
 {
-  delay(1000);
-  forward(spd/2);
-  delay(100);
-  forward(spd/2);
-  delay(100);
-  forward(spd/2);
-  delay(100);
-  turn_right(spd/2);
-  delay(100);
-  forward(spd/2);
-  delay(100);
-  forward(spd/2);
-  delay(100);
-  turn_right(spd/2);
-  delay(100);
-  
-  /*if (Serial.available()>0)
+//  delay(1000);
+  forward(spd);
+//  delay(100);
+//  forward(spd/2);
+//  delay(100);
+//  forward(spd/2);
+//  delay(100);
+//  turn_right(spd/2);
+//  delay(100);
+//  forward(spd/2);
+//  delay(100);
+//  forward(spd/2);
+//  delay(100);
+//  turn_right(spd/2);
+//  delay(100);
+//  
+  if (Serial.available()>0)
   {
    Serial.println("Please enter 1 for forward, 2 for backward, 3 for turn right, and 4 for trun left");
    int input = Serial.read();
@@ -66,7 +66,7 @@ void loop()
      break;
    }
    delay(2);
-  }*/
+  }
   //if (Serial.available()>0)
   //{
   //  Serial.println(5);

@@ -1,53 +1,50 @@
 #define SIZE 4          // size of one side of square maze
 #define UCEN SIZE/2     // upper center goal value
-#define LCEN UCEN - 1   // lowe rcenter goal value
+#define LCEN UCEN - 1   // lower rcenter goal value
 
-// MAZE STUFF //
-byte m[SIZE][SIZE];     // mouse maze wall values
+// MAZE VARIABLES //
+unsigned char m[SIZE][SIZE];     // mouse maze wall values
 char f[SIZE][SIZE];     // flood values
-byte d[SIZE*SIZE];      // directions array for fast run
-byte dCount;            // counts number of moves in directions array
+unsigned char d[SIZE*SIZE];      // directions array for fast run
+unsigned char dCount;            // counts number of moves in directions array
 boolean p[SIZE][SIZE];  // best path detection array
 boolean pchange;        // used to detect if the path has changed
-byte row = 0;           // mouse global position values
-byte col = 0;
-byte dir = 0;
+unsigned char row = 0;           // mouse global position values
+unsigned char col = 0;
+unsigned char dir = 0;
 boolean flood = false;  // toggle display of flood values
-// end MAZE STUFF //
+// end MAZE VARIABLES //
 
-const byte buttonPin = 2;     // the number of the pushbutton pin
-const byte ledPin =  13;      // the number of the LED pin
-
-// MOTOR STUFF //
+// MOTOR VARIABLES //
 #include <AccelStepper.h>
 AccelStepper motorL(4, 12, 11, 10, 9);
 AccelStepper motorR(4, 4, 5, 6, 7);
 float spd = 500;
-int i = 0;
-int counterForward = 0;
-int counterTurn = 0;
-// end MOTOR STUFF //
+//int i = 0;  //unsure if needed
+char counterForward = 0;
+char counterTurn = 0;
+// end MOTOR VARIABLES //
 
-
+//setup
+//
+//sets up mouse
+//runs autoPilot for initial, optimization, and final run
 void setup() {
-  
-  motorL.setMaxSpeed(1000.0);  // motor setup
+
+//******** Setup ************
+  // motor 
+  motorL.setMaxSpeed(1000.0);  
   motorL.setSpeed(spd);
   motorR.setMaxSpeed(1000.0);
   motorR.setSpeed(spd);
   
-  // begin serial communications at 9600 bits of data per second
-  // for communicating with the computer, use one of these rates: 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, or 115200
+  // serial 
   Serial.begin(9600);
-  
+
+  //sensors
   Serial.println("Calibrating sensors...");
   sensorSetup();
   Serial.println("Sensors calibrated.");
-  
-  // initialize the LED pin as an output:
-  pinMode(ledPin, OUTPUT);
-  // initialize the pushbutton pin as an input:
-  pinMode(buttonPin, INPUT);
   
   row = 0;                               // reset position variables
   col = 0;
@@ -55,22 +52,26 @@ void setup() {
   floodFill(-1, -1);                     // initial flood-fill of mouse maze
   senseWall(dir, row, col);              // initial wall-sense at start position
   matchCells();                          // make sure all cell walls match up
-  printMaze(row, col, dir, flood);  // print advanced maze the mouse sees
-  
-  do { // repeat going to center and then back to origin until there is no path change
+  printMaze(row, col, dir, flood);       // print advanced maze the mouse sees
+
+  // finds center and then optimizes path
+  do { 
     autoPilot(row, col, dir, flood, UCEN, UCEN, false, false);
     autoPilot(row, col, dir, flood, 0, 0, false, false);
   } while (pchange);
   delay(1000);
-  
-  autoPilot(row, col, dir, flood, UCEN, UCEN, false, true);  // do fast run without delay
+
+ //Fast run
+  autoPilot(row, col, dir, flood, UCEN, UCEN, false, true);  
 }
 
-boolean floodFill(int row, int col) {
-  //----------//Flood//----------//
+//floodFill
+//
+//uses row, col position as goal
+void floodFill(char row, char col) {
   //fills all flood array spaces with -1
-  for (byte i = 0; i < SIZE; i++) {
-    for (byte j = 0; j < SIZE; j++) {
+  for (unsigned char i = 0; i < SIZE; i++) {
+    for (unsigned char j = 0; j < SIZE; j++) {
       f[i][j] = -1;
     }
   }
@@ -88,8 +89,8 @@ boolean floodFill(int row, int col) {
 
   // fills the flood array with values using flood fill logic
   for (int k = 0; k < SIZE*SIZE; k++) {  // byte's range is 0-255, so int type will stop infinite loop from being created when SIZE = 16
-    for (byte i = 0; i < SIZE; i++) {
-      for (byte j = 0; j < SIZE; j++) {
+    for (unsigned char i = 0; i < SIZE; i++) {
+      for (unsigned char j = 0; j < SIZE; j++) {
         if (f[i][j] == k) {  // if the flood array space equals k (starting at 0), place k + 1 in adjacent flood array spaces
           if (i < SIZE - 1) {  // if cell exists north of current position
             if (!wallExists(m[i + 1][j], 2) && f[i + 1][j] == -1) {  // North
@@ -120,8 +121,8 @@ boolean floodFill(int row, int col) {
 void matchCells() {
   //Matching//
   //makes sure each cell has the same walls as the adjacent cells
-  for (byte i = 0; i < SIZE; i++) {
-    for (byte j = 0; j < SIZE; j++) {
+  for (unsigned char i = 0; i < SIZE; i++) {
+    for (unsigned char j = 0; j < SIZE; j++) {
       if (i > 0) {              // if cell exists SOUTH of current position
         if (wallExists(m[i - 1][j], 0)) {   // if southern cell has north wall, set current cell's south wall
           wallChange(m[i][j], 2, true);
@@ -161,26 +162,26 @@ void matchCells() {
 void clearWalls() {
   //Clean Slate//
   //starts the maze without having any walls anywhere (clears flood values as well)
-  for (byte i = 0; i < SIZE; i++) {
-    for (byte j = 0; j < SIZE; j++) {
+  for (unsigned char i = 0; i < SIZE; i++) {
+    for (unsigned char j = 0; j < SIZE; j++) {
       m[i][j] = 0;
       f[i][j] = 0;
     }
   }
 } // end clearWalls
 
-void printMaze(byte row, byte col, byte dir, boolean flood) {
+void printMaze(unsigned char row, unsigned char col, unsigned char dir, boolean flood) {
   //----------//Print Mouse Maze//----------//
   // Prints the maze that the mouse sees
   // Prints the walls of the maze
   // Also prints the mouse and its orientation, as well as the flood values if toggled on
   char wall[16] = {(char)32, (char)35, (char)35, (char)35, (char)35, (char)35, (char)35, (char)35, 
                    (char)35, (char)35, (char)35, (char)35, (char)35, (char)35, (char)35, (char)35};
-  byte n = 0;
+  unsigned char n = 0;
   
-  for (byte i = SIZE - 1; i < 255; i--) { // for a byte, -1 = 255, so this will still iterate SIZE times
+  for (unsigned char i = SIZE - 1; i < 255; i--) { // for a byte, -1 = 255, so this will still iterate SIZE times
     
-    for (byte j = 0; j < SIZE; j++) { // places ceiling of each row
+    for (unsigned char j = 0; j < SIZE; j++) { // places ceiling of each row
       n = 0;
       if (i < SIZE - 1) { // if not the top row, adds the north wall for each peg
         n = wallExists(m[i + 1][j], 3);
@@ -203,7 +204,7 @@ void printMaze(byte row, byte col, byte dir, boolean flood) {
     }
     Serial.print("\n");
     
-    for (byte j = 0; j < SIZE; j++) { // places walls and spaces of each row
+    for (unsigned char j = 0; j < SIZE; j++) { // places walls and spaces of each row
       Serial.print(wall[wallExists(m[i][j], 3)]); // prints wall if it exists
       if (i == row && j == col) { // if mouse is in the space, prints according to orientation
         switch (dir) {
@@ -233,7 +234,7 @@ void printMaze(byte row, byte col, byte dir, boolean flood) {
     Serial.print("\n");
     
     if (i == 0) { // if last row, prints the floor as well
-      for (byte j = 0; j < SIZE; j++) { // places floor of maze
+      for (unsigned char j = 0; j < SIZE; j++) { // places floor of maze
         n = 0;
         if (j > 0) {
           n = n + wallExists(m[i][j - 1], 2);
@@ -252,9 +253,10 @@ void printMaze(byte row, byte col, byte dir, boolean flood) {
   }
 } // end printMaze
 
-void autoPilot(byte &row, byte &col, byte &dir, bool flood, float targetrow, float targetcol, boolean delayOn, boolean finalRun) {
-  byte autodir, autodirnum;  // stores next direction value and lowest floodfill value of surrounding cells
-  byte startDir = dir;  // used for the final run
+void autoPilot(unsigned char &row, unsigned char &col, unsigned char &dir, bool flood, unsigned char targetrow, unsigned char targetcol, boolean delayOn, boolean finalRun) {
+  unsigned char autodir = 10; 
+  unsigned char autodirnum;  // stores next direction value and lowest floodfill value of surrounding cells
+  unsigned char startDir = dir;  // used for the final run
   
   senseWall(dir, row, col); // senses the initial cell's walls
   matchCells();
@@ -269,7 +271,7 @@ void autoPilot(byte &row, byte &col, byte &dir, bool flood, float targetrow, flo
       floodFill(-1, -1);                                                                         // floodfill with center as goal
     }
     else {  // if target is where else, floodfill from target cell
-      floodFill((int)targetrow, (int)targetcol);
+      floodFill((char)targetrow, (char)targetcol);
     }
 
     if (f[row][col] <= 0) { // if target has been reached (0) or is closed off (-1)
@@ -277,7 +279,7 @@ void autoPilot(byte &row, byte &col, byte &dir, bool flood, float targetrow, flo
         row = 0;
         col = 0;
         dir = startDir;
-        for (byte i = 0; i < dCount; i++) {
+        for (unsigned char i = 0; i < dCount; i++) {
           switch (d[i]) {  // execute buffered moves from directions array
             case 0: moveN(dir, row, col, false); break;
             case 1: moveE(dir, row, col, false); break;
@@ -302,29 +304,21 @@ void autoPilot(byte &row, byte &col, byte &dir, bool flood, float targetrow, flo
     }
 
     autodirnum = f[row][col];  // initialize lowest floodfill value of cells surrounding current cell
-    if (row < SIZE - 1) {
+    if (row < SIZE - 1 && (f[row + 1][col] < autodirnum && !wallExists(m[row][col], 0))) {
       // If northern cell has a lower flood value and is accessible, set next direction as NORTH
-      if (f[row + 1][col] < autodirnum && !wallExists(m[row][col], 0)) {
-        autodir = 0;
-      }
+      autodir = 0;
     }
-    if (row > 0) {
+    else if (row > 0 &&(f[row - 1][col] < autodirnum && !wallExists(m[row][col], 2))) {
       // If southern cell has a lower flood value and is accessible, set next direction as SOUTH
-      if (f[row - 1][col] < autodirnum && !wallExists(m[row][col], 2)) {
-        autodir = 2;
-      }
+      autodir = 2;
     }
-    if (col < SIZE - 1) {
+    else if (col < SIZE - 1 && (f[row][col + 1] < autodirnum && !wallExists(m[row][col], 1))) {
       // If eastern cell has a lower flood value and is accessible, set next direction as EAST
-      if (f[row][col + 1] < autodirnum && !wallExists(m[row][col], 1)) {
-        autodir = 1;
-      }
+      autodir = 1;
     }
-    if (col > 0) {
+    else if (col > 0 && (f[row][col - 1] < autodirnum && !wallExists(m[row][col], 3))) {
       // If western cell has a lower flood value and is accessible, set next direction as WEST
-      if (f[row][col - 1] < autodirnum && !wallExists(m[row][col], 3)) {
-        autodir = 3;
-      }
+      autodir = 3;
     }
     switch (autodir) { // if a valid move has been determined, move there based on its direction
       case 0: moveN(dir, row, col, finalRun); break;
@@ -357,16 +351,6 @@ void autoPilot(byte &row, byte &col, byte &dir, bool flood, float targetrow, flo
 
 void loop() {
   
-  // check if the pushbutton is pressed.
-  // if it is, the buttonState is HIGH:
-//  if (digitalRead(buttonPin) == HIGH) {
-//    while (digitalRead(buttonPin) == HIGH) { // delay until button is depressed
-//      delay(100);
-//    }
-//    Serial.println("Button pressed");
-//    // DO SOMETHING HERE
-//  }
-  
-  delay(1000);  // putting to sleep to reduce power loss
+  delay(100000);  // putting to sleep to reduce power loss
   
 } // end loop

@@ -74,6 +74,46 @@ void turnL(byte & dir) {
   dir = (dir + 3)%4;
 }
 
+/*
+void forward(float spd)
+{
+  int i=0;
+  motorR.setSpeed(spd*-1);
+  motorL.setSpeed(spd*-1);
+  while (i<143)
+  {
+    
+    motorR.runSpeed();
+    motorL.runSpeed();
+    i++;    
+    delay(7);
+  }
+}
+
+void backward(float spd)
+{
+  forward(spd*-1);
+}
+
+void turn_right(float spd)
+{
+  int i=0;
+  motorR.setSpeed(spd*-1);
+  motorL.setSpeed(spd);
+  while(i<66) //alter this value based on the amount of rotation
+  {
+    motorR.runSpeed();
+    motorL.runSpeed();
+    i++;
+    delay(7);
+  }
+}
+
+void turn_left(float spd)
+{
+  turn_right(spd*-1);
+}
+*/
 void forward(float spd) {
   int i = 0;
   int sensor[5];  // 0 is right, 2 is center, 4 is left
@@ -164,8 +204,8 @@ void turn_right(float spd) {
 
 void turn_left(float spd) {
   turn_right(spd*-1);
-  counterTurn--;
-  counterTurn--;
+  counterTurn-=2;
+  
 }
 
 void stationaryDirectionCorrection(float spd) {
