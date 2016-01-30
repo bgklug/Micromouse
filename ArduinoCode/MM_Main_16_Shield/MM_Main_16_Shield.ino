@@ -1,7 +1,7 @@
-#define SIZE 8         // Size of the mouse maze.
-#define UCEN SIZE/2    // Upper cell value that corresponds to goal cell locations.
-#define LCEN UCEN - 1  // Lower cell value that corresponds to goal cell locations.
-#define RPM 255        // Motor default run speed.
+#define SIZE  16      // Size of the mouse maze.
+#define UCEN  SIZE/2  // Upper cell value that corresponds to goal cell locations.
+#define LCEN  UCEN-1  // Lower cell value that corresponds to goal cell locations.
+#define RPM   255     // Motor default run speed.
 
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
@@ -17,7 +17,7 @@ boolean p[SIZE][SIZE];   // Best path detection array (mouse remembers best path
 boolean pchange;         // If mouse changes its path.
 byte row = 0;            // Mouse global row position value.
 byte col = 0;            // Mouse global column position value.
-byte dir = 0;            // Mouse direction/orientation (NESW).
+byte dir = 2;            // Mouse direction/orientation (NESW).
 boolean select = false;  // Selecter switch for diagonal sensors.
 
 
@@ -32,6 +32,7 @@ void setup() {
   motorL->setSpeed(RPM);
   motorR->setSpeed(RPM);
   startWalls();
+  calibrateSensors();
 } // end setup
 
 
@@ -161,7 +162,6 @@ void matchCells() {
 
 
 void autoPilot(byte &row, byte &col, byte &dir, float targetrow, float targetcol, boolean center) {
-  int autodir, autodirnum;  
   senseWall(m, dir, row, col); // senses the initial cell's walls (initialized now).
   matchCells();
   p[row][col] = true; // cell currently standing in is part of the path
@@ -182,40 +182,13 @@ void autoPilot(byte &row, byte &col, byte &dir, float targetrow, float targetcol
     }else if(f[row][col] <= 0){ // ...or is closed off...
       return; 
     }
-  
-    autodir = -1;
-    autodirnum = f[row][col];
-    if (row < SIZE-1) {
-      // If cell above has a lower flood value and is accessible
-      if (f[row+1][col] < autodirnum && !wallExists(m[row][col],0)) {
-        autodir = 0;
-      }
-    }
-    if (row > 0) {
-      // If cell below ... (same as above)
-      if (f[row-1][col] < autodirnum && !wallExists(m[row][col],2)) {
-        autodir = 2;
-      }
-    }
-    if (col < SIZE - 1) {
-      // If cell to the right ... (same as the first)
-      if (f[row][col+1] < autodirnum && !wallExists(m[row][col],1)) {
-        autodir = 1;
-      }
-    }
-    if (col > 0) {
-      // If cell to the left ... (same as the first)
-      if (f[row][col-1] < autodirnum && !wallExists(m[row][col],3)) {
-        autodir = 3;
-      }
-    }
     
-    switch (autodir) { // if a valid move has been determined, move there based on its direction
+    switch (autoDirection()) { // if a valid move has been determined, move there based on its direction
       case 0: moveN(dir, row, col); break;
       case 1: moveE(dir, row, col); break;
       case 2: moveS(dir, row, col); break;
       case 3: moveW(dir, row, col); break;
-      default: break;
+      default: while(1){turnL(dir);} break;
     }
     
     senseWall(m, dir, row, col);
@@ -233,41 +206,43 @@ void autoPilot(byte &row, byte &col, byte &dir, float targetrow, float targetcol
   }
 } // end autoPilot
 
-/*
-void printFullMaze(char a[SIZE][SIZE], byte row, byte col) {
-  //----------//Print Full Maze//----------//
-  // Prints a succinct version of the full maze
-  for (byte i = 0; i < SIZE; i++) {
-    Serial.print(" _");
-  }
-  for (byte i = SIZE - 1; i < 255; i--) {  // byte is unsigned, so -1 is actually 255; still iterates SIZE times
-    Serial.print("\n|");
-    for (byte j = 0; j < SIZE; j++) {
-      if (wallExists(a[i][j],2)) {
-        if (i == row && j == col) {
-          Serial.print((char)177);
-        }
-        else {
-          Serial.print("_");
-        }
-      }
-      else {
-        if (i == row && j == col) {
-          Serial.print("+");
-        }
-        else {
-          Serial.print(" ");
-        }
-      }
-      if (wallExists(a[i][j],1)) {
-        Serial.print("|");
-      }
-      else {
-        Serial.print(" ");
-      }
+
+byte autoDirection (){
+  byte autodir = -1;
+  byte fprox[5];
+  if (row < SIZE-1 && !wallExists(m[row][col],0)) {fprox[0] = f[row+1][col];} else {fprox[0] = 255;}
+  if (col < SIZE-1 && !wallExists(m[row][col],1)) {fprox[1] = f[row][col+1];} else {fprox[1] = 255;}
+  if (row > 0 && !wallExists(m[row][col],2)) {fprox[2] = f[row-1][col];} else {fprox[2] = 255;}
+  if (col > 0 && !wallExists(m[row][col],3)) {fprox[3] = f[row][col-1];} else {fprox[3] = 255;}
+  fprox[4] = min(min(fprox[0],fprox[1]),min(fprox[2],fprox[3]));
+  
+  if (row < SIZE-1 && fprox[0] == fprox[4] && !wallExists(m[row][col],0)){
+  switch (dir) {
+    case 0: return 0;
+    case 2: if(fprox[0] < fprox[1] && fprox[0] < fprox[3]){return 0;} break;
+    default: autodir = 0; break;
     }
-    Serial.print("|");
   }
-  Serial.print("\n");
-} // end printFullMaze
-*/
+  if (col < SIZE-1 && fprox[1] == fprox[4] && !wallExists(m[row][col],1)){
+    switch (dir) {
+    case 1: return 1;
+    case 3: if(fprox[1] < fprox[0] && fprox[1] < fprox[2]){return 1;} break;
+    default: autodir = 1; break;
+    }
+  }
+  if (row > 0 && fprox[2] == fprox[4] && !wallExists(m[row][col],2)){
+    switch (dir) {
+    case 0: if(fprox[2] < fprox[1] && fprox[2] < fprox[3]){return 2;} break;
+    case 2: return 2;
+    default: autodir = 2; break;
+    }
+  }
+  if (col > 0 && fprox[3] == fprox[4] && !wallExists(m[row][col],3)){
+    switch (dir) {
+    case 1: if(fprox[3] < fprox[0] &&  fprox[3] < fprox[2]){return 3;} break;
+    case 3: return 3;
+    default: autodir = 3; break;
+    }
+  }
+  return autodir;
+} // end autoDirection
