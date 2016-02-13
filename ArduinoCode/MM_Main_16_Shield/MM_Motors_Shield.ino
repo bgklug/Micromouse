@@ -1,5 +1,5 @@
-#define STEP_F_MAX  150  // Maximum step count for moving forward.
-#define STEP_F_MIN  150  // Minimum step count for moving forward.
+#define STEP_F_MAX  146  // Maximum step count for moving forward.
+#define STEP_F_MIN  144  // Minimum step count for moving forward.
 #define STEP_T      66   // Step count for turning.
 #define DELAY_F     0    // Delay in milliseconds between moving forward and anything else.
 #define DELAY_T     0    // Delay in milliseconds between turning and anything else.

@@ -1,12 +1,12 @@
-#define WALLMARG_L   100  // Value subtracted from the value required for left sensor to confirm a wall's existence.
+#define WALLMARG_L   50  // Value subtracted from the value required for left sensor to confirm a wall's existence.
 #define WALLMARG_F   50  // Value subtracted from the value required for forward sensor to confirm a wall's existence.
-#define WALLMARG_R   100  // Value subtracted from the value required for right sensor to confirm a wall's existence.
-#define MOTORMARG_L  50  // Value added to the value required for the left sensor to tell the left motor to turn away from a wall.
-#define MOTORMARG_F  25  // Value added to the value required for the front sensor to tell both motors stop.
-#define MOTORMARG_R  50  // Value added to the value required for the right sensor to tell the right motor to turn away from a wall.
-#define MOTORMARG_D  50  // Value added to the value required for the diagonal sensors to tell the motors to turn away from walls (and pegs).
+#define WALLMARG_R   50  // Value subtracted from the value required for right sensor to confirm a wall's existence.
+#define MOTORMARG_L  25  // Value added to the value required for the left sensor to tell the left motor to turn away from a wall.
+#define MOTORMARG_F  10  // Value added to the value required for the front sensor to tell both motors stop.
+#define MOTORMARG_R  25  // Value added to the value required for the right sensor to tell the right motor to turn away from a wall.
+#define MOTORMARG_D  25  // Value added to the value required for the diagonal sensors to tell the motors to turn away from walls (and pegs).
 #define AVECOUNT     3   // Number of readings to average together (for senseWall).
-#define DELAY_S      5   // Delay in milliseconds between each wall sensor reading (during senseWall).
+#define DELAY_S      1   // Delay in milliseconds between each wall sensor reading (during senseWall).
 #define DELAY_C      0   // Delay in milliseconds between centering and anything else.
 
 int centerUL;

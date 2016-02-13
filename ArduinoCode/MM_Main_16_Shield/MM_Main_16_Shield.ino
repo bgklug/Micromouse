@@ -44,10 +44,10 @@ void loop(){
 
 
 void startWalls(){
-  //m[0][0] = 14;
-  //m[0][SIZE] = 7;
-  //m[SIZE][0] = 13;
-  //m[SIZE][SIZE] = 11;
+  m[0][0] = 14;
+  m[0][SIZE] = 7;
+  m[SIZE][0] = 13;
+  m[SIZE][SIZE] = 11;
   
   m[LCEN][LCEN] = 3;
   m[LCEN][UCEN] = 9;
