@@ -5,11 +5,12 @@
 
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_PWMServoDriver.h"
+#include "utility/Adafruit_MS_PWMServoDriver.h"
 
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
-Adafruit_StepperMotor *motorL = AFMS.getStepper(200, 2);
+Adafruit_MotorShield AFMS(0x60);
 Adafruit_StepperMotor *motorR = AFMS.getStepper(200, 1);
+Adafruit_StepperMotor *motorL = AFMS.getStepper(200, 2);
+
 
 char m[SIZE][SIZE];      // Mouse maze wall values.
 char f[SIZE][SIZE];      // Mouse maze flood values.
@@ -25,12 +26,18 @@ void setup() {
   // begin serial communications at 9600 bits of data per second
   // for communicating with the computer, use one of these rates: 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, or 115200
   Serial.begin(9600);
+  
   pinMode(7, OUTPUT);
   digitalWrite(7, HIGH);
   pinMode(6, OUTPUT);
+
+  //motorL = AFMS.getStepper(200, 2);
+  //motorR = AFMS.getStepper(200, 1); 
+  
   AFMS.begin();
   motorL->setSpeed(RPM);
   motorR->setSpeed(RPM);
+  
   startWalls();
   calibrateSensors();
 } // end setup
@@ -162,7 +169,7 @@ void matchCells() {
 
 
 void autoPilot(byte &row, byte &col, byte &dir, float targetrow, float targetcol, boolean center) {
-  senseWall(m, dir, row, col); // senses the initial cell's walls (initialized now).
+  senseWall(m[row][col], dir, row, col); // senses the initial cell's walls (initialized now).
   matchCells();
   p[row][col] = true; // cell currently standing in is part of the path
   pchange = false;
@@ -191,7 +198,7 @@ void autoPilot(byte &row, byte &col, byte &dir, float targetrow, float targetcol
       default: while(1){turnL(dir);} break;
     }
     
-    senseWall(m, dir, row, col);
+    senseWall(m[row][col], dir, row, col);
     
     if(wallExists(m[row][col], dir)){
       centerF();}

@@ -29,12 +29,16 @@ void calibrateSensors () {
   motorValF = analogRead(A1) - MOTORMARG_F;
   motorValR = analogRead(A0) + MOTORMARG_R;
   motorValD = analogRead(A3) + MOTORMARG_D;
-  turnR(dir); turnR(dir);
+  
+  turnLtest(); 
+  moveFtest();
+  turnRtest();
+  moveBtest();
 } // end calibrateSensors
 
 
 // Senses wall while holding still and changes the mouse's maze. Should be ran in every unexplored cell.
-void senseWall(char mou[SIZE][SIZE], byte dir, byte row, byte col){
+void senseWall(char mou, byte dir, byte row, byte col){
   int wallAveL = 0;
   int wallAveF = 0;
   int wallAveR = 0;
@@ -48,9 +52,9 @@ void senseWall(char mou[SIZE][SIZE], byte dir, byte row, byte col){
   wallAveL = wallAveL / AVECOUNT;
   wallAveF = wallAveF / AVECOUNT;
   wallAveR = wallAveR / AVECOUNT;
-  wallChange(mou[row][col], (dir + 3)%4, (wallAveL > wallValL)); // Left-Side
-  wallChange(mou[row][col], dir, (wallAveF > wallValF));         // Forward
-  wallChange(mou[row][col], (dir + 1)%4, (wallAveR > wallValR)); // Right-Side
+  wallChange(mou, (dir + 3)%4, (wallAveL > wallValL)); // Left-Side
+  wallChange(mou, dir, (wallAveF > wallValF));         // Forward
+  wallChange(mou, (dir + 1)%4, (wallAveR > wallValR)); // Right-Side
   /*
   Serial.println("Average:");
   Serial.print("L: ");  Serial.print(wallAveL);  //Left
@@ -63,11 +67,11 @@ void senseWall(char mou[SIZE][SIZE], byte dir, byte row, byte col){
 // Senses walls while moving and controlls the motors. Should be ran every step.
 // Consider having another function to find highest sensor value, then use a case statement.
 boolean senseMotor(){
-  if(analogRead(A2) > motorValL){ motorL->step(1, FORWARD, SINGLE); return true; }               // Left-Side
+  if(analogRead(A2) > motorValL){ motorL->step(1, FORWARD, DOUBLE); return true; }               // Left-Side
   if(analogRead(A1) > motorValF){ return true; }                                                 // Forward
-  if(analogRead(A0) > motorValR){ motorR->step(1, FORWARD, SINGLE); return true; }               // Right-Side
-  if((analogRead(A3) > motorValD) && select){ motorL->step(1, FORWARD, SINGLE); return true; }   // Left-Diagonal
-  if((analogRead(A3) > motorValD) && !select){ motorR->step(1, FORWARD, SINGLE); return true; }  // Right-Diagonal
+  if(analogRead(A0) > motorValR){ motorR->step(1, FORWARD, DOUBLE); return true; }               // Right-Side
+  if((analogRead(A3) > motorValD) && select){ motorL->step(1, FORWARD, DOUBLE); return true; }   // Left-Diagonal
+  if((analogRead(A3) > motorValD) && !select){ motorR->step(1, FORWARD, DOUBLE); return true; }  // Right-Diagonal
   /*
   Serial.println("senseMotor:");
   Serial.print("L: ");  Serial.println(analogRead(A2));  //Left
@@ -81,8 +85,8 @@ boolean senseMotor(){
 
 void centerF(){
   while (analogRead(A1) < motorValF){
-    motorL->step(1, FORWARD, SINGLE);
-    motorR->step(1, FORWARD, SINGLE); 
+    motorL->step(1, FORWARD, DOUBLE);
+    motorR->step(1, FORWARD, DOUBLE); 
     senseMotor();
   }
   delay(DELAY_C);
@@ -98,11 +102,11 @@ void centerUpre(){
 
 void centerUpost(){
   while (analogRead(A2)>centerUL && analogRead(A0)<centerUR){
-    motorL->step(1, FORWARD, SINGLE);
-    motorR->step(1, BACKWARD, SINGLE); 
+    motorL->step(1, FORWARD, DOUBLE);
+    motorR->step(1, BACKWARD, DOUBLE); 
   }
   while (analogRead(A2)<centerUL && analogRead(A0)>centerUR){
-    motorL->step(1, BACKWARD, SINGLE);
-    motorR->step(1, FORWARD, SINGLE);
+    motorL->step(1, BACKWARD, DOUBLE);
+    motorR->step(1, FORWARD, DOUBLE);
   }
 } // end centerUpost
