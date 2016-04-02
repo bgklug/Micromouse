@@ -9,6 +9,11 @@ int m2A = 9;
 int m2B = 10;
 float baselineGyroZ;
 bool first = true;
+float w;
+float wold;
+float dw;
+int start;
+int stop;
 
 #define DEBUG true
 
@@ -46,30 +51,26 @@ void setup()
   if(DEBUG){
     Serial.print("Baseline Z = ");Serial.println(baselineGyroZ);
   }
-  
-  
+
+  // first loop
+  stop = millis();
+  sensors_event_t event; 
+  gyro.getEvent(&event);
+  w = event.gyro.z-baselineGyroZ;
 }
 
-float w;
-float wold;
-float dw;
-int start;
-int stop;
+
  
 void loop()
 {
-  if(first){start = millis();}
   /* Get a new sensor event */ 
   sensors_event_t event; 
   gyro.getEvent(&event);
 
-  if(!first){
-    wold =w;
-  }
-  else{wold = 0;}
+  wold =w;
   w = event.gyro.z-baselineGyroZ;
 
-  if(!first){start = stop;}
+  start = stop;
   stop = millis();
   dw = (w - wold)/(stop-start);
 
@@ -77,10 +78,6 @@ void loop()
   int speed = 255/2 ;
   setMotor1(speed-50.0*w, 0);
   setMotor2(speed+50.0*w, 0);
-  
- 
-  if(first)
-  {first= false;}
 }
 
  
