@@ -1,6 +1,6 @@
 #define SIZE 4          // size of one side of square maze
 #define UCEN SIZE/2     // upper center goal value
-#define LCEN UCEN - 1   // lower rcenter goal value
+#define LCEN UCEN - 1   // lower center goal value
 
 // MAZE VARIABLES //
 unsigned char m[SIZE][SIZE];     // mouse maze wall values
@@ -52,18 +52,18 @@ void setup() {
   floodFill(-1, -1);                     // initial flood-fill of mouse maze
   senseWall(dir, row, col);              // initial wall-sense at start position
   matchCells();                          // make sure all cell walls match up
-  printMaze(row, col, dir, flood);       // print advanced maze the mouse sees
+  printMaze(row, col, dir);       // print advanced maze the mouse sees
 
   // finds center and then optimizes path
   do { 
-    autoPilot(row, col, dir, flood, UCEN, UCEN, false, false);
-    autoPilot(row, col, dir, flood, 0, 0, false, false);
+    autoPilot(row, col, dir, UCEN, UCEN, false, false);
+    autoPilot(row, col, dir, 0, 0, false, false);
   } while (pchange);
   delay(1000);
 
  //Fast run
-  autoPilot(row, col, dir, flood, UCEN, UCEN, false, true);  
-}
+  autoPilot(row, col, dir, UCEN, UCEN, false, true);  
+}//end setup()
 
 //floodFill
 //
@@ -118,59 +118,7 @@ void floodFill(char row, char col) {
   }
 } // end floodFill
 
-void matchCells() {
-  //Matching//
-  //makes sure each cell has the same walls as the adjacent cells
-  for (unsigned char i = 0; i < SIZE; i++) {
-    for (unsigned char j = 0; j < SIZE; j++) {
-      if (i > 0) {              // if cell exists SOUTH of current position
-        if (wallExists(m[i - 1][j], 0)) {   // if southern cell has north wall, set current cell's south wall
-          wallChange(m[i][j], 2, true);
-        }
-        else if (wallExists(m[i][j], 2)) {  // if current cell has south wall, set southern cell's north wall
-          wallChange(m[i - 1][j], 0, true);
-        }
-      }
-      if (i < SIZE - 1) {       // if cell exists NORTH of current position
-        if (wallExists(m[i + 1][j], 2)) {   // if northern cell has south wall, set current cell's north wall
-          wallChange(m[i][j], 0, true);
-        }
-        else if (wallExists(m[i][j], 0)) {  // if current cell has north wall, set northern cell's south wall
-          wallChange(m[i + 1][j], 2, true);
-        }
-      }
-      if (j > 0) {              // if cell exists WEST of current position
-        if (wallExists(m[i][j - 1], 1)) {   // if western cell has east wall, set current cell's west wall
-          wallChange(m[i][j], 3, true);
-        }
-        else if (wallExists(m[i][j], 3)) {  // if current cell has west wall, set western cell's east wall
-          wallChange(m[i][j - 1], 1, true);
-        }
-      }
-      if (j < SIZE - 1) {       // if cell exists EAST of current position
-        if (wallExists(m[i][j + 1], 3)) {   // if eastern cell has west wall, set current cell's east wall
-          wallChange(m[i][j], 1, true);
-        }
-        else if (wallExists(m[i][j], 1)) {  // if current cell has east wall, set eastern cell's west wall
-          wallChange(m[i][j + 1], 3, true);
-        }
-      }
-    }
-  }
-} // end matchCells
-
-void clearWalls() {
-  //Clean Slate//
-  //starts the maze without having any walls anywhere (clears flood values as well)
-  for (unsigned char i = 0; i < SIZE; i++) {
-    for (unsigned char j = 0; j < SIZE; j++) {
-      m[i][j] = 0;
-      f[i][j] = 0;
-    }
-  }
-} // end clearWalls
-
-void printMaze(unsigned char row, unsigned char col, unsigned char dir, boolean flood) {
+void printMaze(unsigned char row, unsigned char col, unsigned char dir) {
   //----------//Print Mouse Maze//----------//
   // Prints the maze that the mouse sees
   // Prints the walls of the maze
@@ -253,7 +201,7 @@ void printMaze(unsigned char row, unsigned char col, unsigned char dir, boolean 
   }
 } // end printMaze
 
-void autoPilot(unsigned char &row, unsigned char &col, unsigned char &dir, bool flood, unsigned char targetrow, unsigned char targetcol, boolean delayOn, boolean finalRun) {
+void autoPilot(unsigned char &row, unsigned char &col, unsigned char &dir, unsigned char targetrow, unsigned char targetcol, boolean delayOn, boolean finalRun) {
   unsigned char autodir = 10; 
   unsigned char autodirnum;  // stores next direction value and lowest floodfill value of surrounding cells
   unsigned char startDir = dir;  // used for the final run
@@ -299,7 +247,7 @@ void autoPilot(unsigned char &row, unsigned char &col, unsigned char &dir, bool 
       }
       // Prints the maze to the screen when it reaches its destination
       matchCells();
-      printMaze(row, col, dir, flood);
+      printMaze(row, col, dir);
       return;  // stops autopilot
     }
 
@@ -344,7 +292,7 @@ void autoPilot(unsigned char &row, unsigned char &col, unsigned char &dir, bool 
     }
     
     // Prints the maze to the screen
-    printMaze(row, col, dir, flood);
+    printMaze(row, col, dir);
 
   }
 } // end autoPilot
