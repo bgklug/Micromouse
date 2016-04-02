@@ -7,10 +7,9 @@
 #include <Adafruit_MotorShield.h>
 #include "utility/Adafruit_MS_PWMServoDriver.h"
 
-Adafruit_MotorShield AFMS(0x60);
-Adafruit_StepperMotor *motorR = AFMS.getStepper(200, 1);
+Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Adafruit_StepperMotor *motorL = AFMS.getStepper(200, 2);
-
+Adafruit_StepperMotor *motorR = AFMS.getStepper(200, 1);
 
 char m[SIZE][SIZE];      // Mouse maze wall values.
 char f[SIZE][SIZE];      // Mouse maze flood values.
@@ -30,16 +29,16 @@ void setup() {
   pinMode(7, OUTPUT);
   digitalWrite(7, HIGH);
   pinMode(6, OUTPUT);
+  digitalWrite(6, LOW);
 
-  //motorL = AFMS.getStepper(200, 2);
-  //motorR = AFMS.getStepper(200, 1); 
-  
   AFMS.begin();
   motorL->setSpeed(RPM);
   motorR->setSpeed(RPM);
+
+  delay(5000);
   
   startWalls();
-  calibrateSensors();
+  calibrateSensors(dir);
 } // end setup
 
 
@@ -50,11 +49,12 @@ void loop(){
 }
 
 
+//THIS FUNCTION FUCKS WITH THE MOTORS FOR SOME REASON!
 void startWalls(){
   m[0][0] = 14;
-  m[0][SIZE] = 7;
-  m[SIZE][0] = 13;
-  m[SIZE][SIZE] = 11;
+  //m[0][SIZE-1] = 7;
+  //m[SIZE-1][0] = 13;
+  //m[SIZE-1][SIZE-1] = 11;
   
   m[LCEN][LCEN] = 3;
   m[LCEN][UCEN] = 9;

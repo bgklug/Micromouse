@@ -1,7 +1,8 @@
-#define STEP_F_MAX  146  // Maximum step count for moving forward.
+#define STEP_F_MAX  148  // Maximum step count for moving forward.
 #define STEP_F_MIN  144  // Minimum step count for moving forward.
 #define STEP_T      66   // Step count for turning.
 #define DELAY_F     0    // Delay in milliseconds between moving forward and anything else.
+#define DELAY_B     0
 #define DELAY_T     0    // Delay in milliseconds between turning and anything else.
 
 unsigned char stepF = STEP_F_MAX;
@@ -56,8 +57,8 @@ void moveF(byte dir, byte & mouRow, byte & mouCol){
   unsigned char stepCount = 0;
   while (stepCount < stepF) {
     if (!senseMotor()) {
-      motorL->step(1, FORWARD, DOUBLE);
-      motorR->step(1, FORWARD, DOUBLE); 
+      motorL->onestep(FORWARD, DOUBLE);
+      motorR->onestep(FORWARD, DOUBLE); 
     }
     stepCount++;
     if(select){
@@ -76,8 +77,8 @@ void turnR(byte & dir){
   dir = (dir + 1)%4;
   unsigned char stepCount = 0;
   while (stepCount < STEP_T) { //alter this value based on the amount of rotation
-    motorL->step(1, FORWARD, DOUBLE);
-    motorR->step(1, BACKWARD, DOUBLE);
+    motorL->onestep(FORWARD, DOUBLE);
+    motorR->onestep(BACKWARD, DOUBLE);
     stepCount++;
   }
   delay(DELAY_T);
@@ -88,51 +89,19 @@ void turnL(byte & dir){
   dir = (dir + 3)%4;
   unsigned char stepCount = 0;
   while (stepCount < STEP_T) { //alter this value based on the amount of rotation
-    motorL->step(1, BACKWARD, DOUBLE);
-    motorR->step(1, FORWARD, DOUBLE);
-    stepCount++;
-  }
-  delay(DELAY_T);
-} // end turnL
-
-//////////////////////////////////////////////////////////////////////////////////
-
-void moveFtest(){
-  unsigned char stepCount = 0;
-  while (stepCount < stepF) { //alter this value based on the amount of rotation
-    motorL->onestep(FORWARD, DOUBLE);
-    motorR->onestep(FORWARD, DOUBLE);
-    stepCount++;
-  }
-  delay(DELAY_F);
-} // end moveF
-
-void moveBtest(){
-  unsigned char stepCount = 0;
-  while (stepCount < stepF) { //alter this value based on the amount of rotation
-    motorL->onestep(BACKWARD, DOUBLE);
-    motorR->onestep(BACKWARD, DOUBLE);
-    stepCount++;
-  }
-  delay(DELAY_F);
-} // end moveF
-
-void turnRtest(){
-  unsigned char stepCount = 0;
-  while (stepCount < STEP_T) { //alter this value based on the amount of rotation
-    motorL->onestep(FORWARD, DOUBLE);
-    motorR->onestep(BACKWARD, DOUBLE);
-    stepCount++;
-  }
-  delay(DELAY_T);
-} // end turnR
-
-void turnLtest(){
-  unsigned char stepCount = 0;
-  while (stepCount < STEP_T) { //alter this value based on the amount of rotation
     motorL->onestep(BACKWARD, DOUBLE);
     motorR->onestep(FORWARD, DOUBLE);
     stepCount++;
   }
   delay(DELAY_T);
 } // end turnL
+
+void moveB(byte stepB){
+  char stepCount = 0;
+  while (stepCount < stepB) {
+    motorL->onestep(BACKWARD, DOUBLE);
+    motorR->onestep(BACKWARD, DOUBLE);
+    stepCount++;
+  }
+  delay(DELAY_B);
+} // end moveB
