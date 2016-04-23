@@ -1,11 +1,10 @@
 #define STEP_F_MAX  148  // Maximum step count for moving forward.
 #define STEP_F_MIN  144  // Minimum step count for moving forward.
 #define STEP_T      66   // Step count for turning.
-#define DELAY_F     0    // Delay in milliseconds between moving forward and anything else.
-#define DELAY_B     0
-#define DELAY_T     0    // Delay in milliseconds between turning and anything else.
+#define DELAY_M     0    // Delay in milliseconds between moving forward and anything else.
+#define DELAY_T     100  // Delay in milliseconds between turning and anything else.
 
-unsigned char stepF = STEP_F_MAX;
+byte stepF = STEP_F_MAX;
 
 void moveN(byte & dir, byte & mouRow, byte & mouCol){
   switch (dir) {
@@ -69,7 +68,7 @@ void moveF(byte dir, byte & mouRow, byte & mouCol){
       select = true;
     }
   }
-  delay(DELAY_F);
+  delay(DELAY_M);
 } // end moveF
 
 
@@ -96,12 +95,46 @@ void turnL(byte & dir){
   delay(DELAY_T);
 } // end turnL
 
-void moveB(byte stepB){
+
+void walkF(byte steps){
   char stepCount = 0;
-  while (stepCount < stepB) {
+  while (stepCount < steps) {
+    motorL->onestep(FORWARD, DOUBLE);
+    motorR->onestep(FORWARD, DOUBLE);
+    stepCount++;
+  }
+  delay(DELAY_M);
+} // end moveB
+
+
+void walkB(byte steps){
+  char stepCount = 0;
+  while (stepCount < steps) {
     motorL->onestep(BACKWARD, DOUBLE);
     motorR->onestep(BACKWARD, DOUBLE);
     stepCount++;
   }
-  delay(DELAY_B);
+  delay(DELAY_M);
 } // end moveB
+
+
+void rotateL(byte steps){
+  char stepCount = 0;
+  while (stepCount < steps) {
+    motorL->onestep(BACKWARD, DOUBLE);
+    motorR->onestep(FORWARD, DOUBLE);
+    stepCount++;
+  }
+  delay(DELAY_T);
+} // end rotateL
+
+
+void rotateR(byte steps){
+  char stepCount = 0;
+  while (stepCount < steps) {
+    motorL->onestep(FORWARD, DOUBLE);
+    motorR->onestep(BACKWARD, DOUBLE);
+    stepCount++;
+  }
+  delay(DELAY_T);
+} // end rotateR

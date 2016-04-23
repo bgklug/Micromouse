@@ -12,7 +12,7 @@ Adafruit_StepperMotor *motorL = AFMS.getStepper(200, 2);
 Adafruit_StepperMotor *motorR = AFMS.getStepper(200, 1);
 
 char m[SIZE][SIZE];      // Mouse maze wall values.
-char f[SIZE][SIZE];      // Mouse maze flood values.
+char f[SIZE][SIZE];      // Mouse maze flood values (needs +-).
 boolean p[SIZE][SIZE];   // Best path detection array (mouse remembers best path).
 boolean pchange;         // If mouse changes its path.
 byte row = 0;            // Mouse global row position value.
