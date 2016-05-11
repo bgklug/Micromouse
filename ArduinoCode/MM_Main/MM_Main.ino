@@ -43,8 +43,9 @@ void setup() {
 
 
 void loop(){
-  delay(1000);
+  Serial.println("----- Finding Center -----");
   autoPilot(row, col, dir, UCEN, UCEN, true);
+  Serial.println("----- Returning Home -----");
   autoPilot(row, col, dir, 0, 0, false);
 }
 
