@@ -1,0 +1,28 @@
+Problems and potential fixes:
+Sound Feedback from the speaker to the mic.
+	fix during physical design stage.
+Voltage offset on the mic (good, but below center).
+	achieve a dc offset of 510? so it can scale in both directions evenly before clipping (0 and 1023).
+	add static value to readings?
+Mic maxes out easily.
+	voltage divieder?
+Mic does positive and negative sound (goes above and below a static DC).
+
+Notes:
+There appears to be nothing wrong on the Arduino side.
+	when supplying a sine wave to the analog input, it appears to sample correctly.
+		when the speaker high/low is set up right, it outputs reasonably.
+	the circular register appears to be working properly, with pointers moving at different speeds.
+		there is minimal crackle when the registers overlap.
+		when the speaker high/low is set up right, the output is slowed
+	we may need a different method for determining when the speaker is supplied a high or low.
+		ideally, we would have variable voltages, but pwm won't work in this case.
+Without anything plugged in, there is noise (min: 0, max: 50-150).
+With just mic plugged in (3.3V supply, fairly quiet room), there is noise (min: ~330, max: ~340).
+
+Ideas:
+Have the speaker react to local peak voltages, instead of reacting to a chane in amplitude between samples
+	high when signal crosses margin (10%?) above DC offset.
+	low wheh signal crosses margin (10%?) below DC offset.
+	requires knowledge of DC offset, which may not be consistent.
+
