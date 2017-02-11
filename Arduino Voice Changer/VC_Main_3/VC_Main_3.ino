@@ -6,7 +6,7 @@ Adafruit_MCP4725 dac;
 
 // set both equal to 1 for unchanged voice.
 #define chunk 512 //max~850 from memory, max=1023 from uint26_t voiceIn/voiceOut.
-#define perCase -7 //percent speed to play back voice (0  /1   /2   /3   /4   /5   /6   /7
+#define perCase 0 //percent speed to play back voice (0  /1   /2   /3   /4   /5   /6   /7
                    //                               = 100/87.5/75.0/67.5/50.0/37.5/25.0/12.5).
 
 uint16_t voiceIn = 1; //ahead by 1 to prevent permanent simultaneous read/write when modSlow = 1.
