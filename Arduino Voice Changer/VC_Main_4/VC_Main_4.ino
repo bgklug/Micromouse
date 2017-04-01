@@ -5,9 +5,13 @@
 Adafruit_MCP4725 dac;
 
 // set both equal to 1 for unchanged voice.
-#define CHUNK   512 // max ~ 850 from dynamic memory, max = 1023 from uint16_t voiceIn/voiceOut.
-#define OFFSET -512 // shift output value to DAC down by half mic input.
+#define CHUNK 512 // max ~ 850 from dynamic memory, max = 1023 from uint16_t voiceIn/voiceOut.
+#define FSEL_INCON (16 / 1023 / 2) // used to convert analogRead input into one of the levels in fSelCase.
+#define FSEL_PIN 1 // input fSelPin = A1
+#define FREF_PIN 13 // output 5v reference, to be voltaged divided with 10 kOhm resistor and POT.
+#define FSEL_TIME (unsigned long)1024 // used in if statement to modulate millis(), to regulate analogRead for fSelCase.
 
+boolean fSelReady = true;
 uint8_t fSelCase = 0; // percent speed to play back voice (  15 |  14 |  13 |  12 |  11 |  10 |   9 |   8 |   0 |  1   |  2   |  3  |  4   |  5   |  6   |  7
                       //                                 =  xxx | 400 | 300 | 250 | 200 | 175 | 150 | 125 | 100 | 87.5 | 75.0 |67.5 | 50.0 | 37.5 | 25.0 | 12.5).
 
@@ -41,13 +45,22 @@ void setup()
 
   dac.begin(0x62);
 
-//  Serial.begin(115200);
+//  pinMode(A1, INPUT);
+//  
+  pinMode(FREF_PIN, OUTPUT);
+  digitalWrite(FREF_PIN, HIGH); // to be used in voltage divider circuit for fSelCase.
+
+  Serial.begin(115200);
 }
 
 void callback()
 {
   uint8_t low, high;
 
+  ADMUX = (ADMUX & 0xF0) | 0x00;    // set A0 analog input pin
+  ADCSRA |= (1 << ADSC);  // start ADC conversion
+//  ADMUX |= (0 & 0x07);    // set A0 analog input pin?
+//  ADMUX |= (1 << REFS0);  // set reference voltage
   low = ADCL;
   high = ADCH;
   voiceVec[voiceIn] = (high << 8) | low;
@@ -110,5 +123,29 @@ void callback()
 
 void loop(void)
 {
-  dac.setVoltage(voiceVec[voiceOut] * 4, false);  // multiplied by 4 to shift bits left 2 for higher voltage output (10-bit ADC, 12-bit DAC)
+  dac.setVoltage(voiceVec[voiceOut], false);
+  
+  if(!(millis() % FSEL_TIME) && fSelReady) // triggers when millis is evenly divisible by FSEL_TIME, used to limit analogRead frequency.
+  {
+    ADMUX = (ADMUX & 0xF0) | 0x01;    // set A1 analog input pin.
+    ADCSRA |= (1 << ADSC);  // start ADC conversion
+//    ADMUX |= (0 & 0x07);    // set A0 analog input pin?
+//    ADMUX |= (1 << REFS0);  // set reference voltage
+    uint8_t low, high;
+    
+    low = ADCL;
+    high = ADCH;
+    fSelCase = (high << 8) | low;
+    
+    //fSelCase = floor(fSelCase * FSEL_INCON); // fSelCase = input * 16 / 1023, rounded down.
+    
+    Serial.println(fSelCase);
+
+    fSelReady = false;
+  } 
+  else if(millis() % FSEL_TIME) 
+  {
+    fSelReady = true;
+  }
+  
 }
