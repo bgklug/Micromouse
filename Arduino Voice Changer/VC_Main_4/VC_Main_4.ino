@@ -1,6 +1,6 @@
 #include <Wire.h>
 #include <Adafruit_MCP4725.h>
-#include <TimerOne.h>
+//#include <TimerOne.h>
 
 Adafruit_MCP4725 dac;
 
@@ -22,47 +22,121 @@ uint16_t voiceVec[CHUNK];
 
 void setup()
 {
+  // ---------- Clock ---------- //
+  // CLKPR - Clock Prescale Register
+  // CLKPCE: Clock Prescaler Change Enable
+  // CLKPS[3:0]: Clock Prescaler Select Bits 3-0
+  CLKPR = (1 << CLKPCE); // CLKPCE = 1b, CLKPS[3:0] = 0000b, Mandatory to chang CLKPS bits
+  //CLKPR |= (1 << CLKPS3) | (0 << CLKPS2) | (0 << CLKPS1) | (0 << CLKPS0); // 256 prescaler for   31.25 kHz
+  //CLKPR |= (0 << CLKPS3) | (1 << CLKPS2) | (1 << CLKPS1) | (1 << CLKPS0); // 128 prescaler for   62.50 kHz
+  //CLKPR |= (0 << CLKPS3) | (1 << CLKPS2) | (1 << CLKPS1) | (0 << CLKPS0); //  64 prescaler for  125.00 kHz
+  //CLKPR |= (0 << CLKPS3) | (1 << CLKPS2) | (0 << CLKPS1) | (1 << CLKPS0); //  32 prescaler for  250.00 kHz
+  //CLKPR |= (0 << CLKPS3) | (1 << CLKPS2) | (0 << CLKPS1) | (0 << CLKPS0); //  16 prescaler for  500.00 kHz
+  //CLKPR |= (0 << CLKPS3) | (0 << CLKPS2) | (1 << CLKPS1) | (1 << CLKPS0); //   8 prescaler for 1000.00 kHz (DEFAULT)
+  //CLKPR |= (0 << CLKPS3) | (0 << CLKPS2) | (1 << CLKPS1) | (0 << CLKPS0); //   4 prescaler for 2000.00 kHz
+  //CLKPR |= (0 << CLKPS3) | (0 << CLKPS2) | (0 << CLKPS1) | (1 << CLKPS0); //   2 prescaler for 4000.00 kHz
+  CLKPR |= (0 << CLKPS3) | (0 << CLKPS2) | (0 << CLKPS1) | (0 << CLKPS0); //   1 prescaler for 8000.00 kHz
+
+  // ---------- ADC10 ---------- //
   // http://www.robotplatform.com/knowledge/ADC/adc_tutorial_3.html
-  ADMUX |= (0 & 0x07);    // set A0 analog input pin?
+  // ADMUX - ADC Multiplexer Selection Register
+  // REFS[1:0]: Reference Selection Bits 1-0
+  // ADLAR: ADC Left Adjust Result
+  // MUX[3:0]: Analog Channel Selection Bits 3-0
   ADMUX |= (1 << REFS0);  // set reference voltage
+  ADMUX |= (0 & 0x07);    // set ADMUX to ADC0
+  // ADCSRA - ADC Control and Status Register A
+  // ADEN: ADC Enable
+  // ADSC: ADC Start Conversion
+  // ADATE: ADC Auto Trigger Enable
+  // ADIF: ADC Interrupt Flag
+  // ADIE: ADC Interrupt Enable
+  // ADPS[2:0]: ADC Prescaler Select Bits 2-0
+  ADCSRA |= (1 << ADEN) | (0 << ADATE) | (1 << ADIE); // ADC enabled, ADC auto trigger disabled, ADC interrupt enabled.
+  //Clock stuff ->                                      // Prescaler | 8000 kHz | 13 Cycles | 13.5 Cycles
+  ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // 128       |  ~63 kHz | 4.808 kHz | 4.630 kHz
+//  ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); //  64       |  125 kHz | 9.615 kHz | 9.259 kHz
+//  ADCSRA |= (1 << ADPS2) | (0 << ADPS1) | (1 << ADPS0); //  32       |  250 kHz | 19.23 kHz | 18.52 kHz
+//  ADCSRA |= (1 << ADPS2) | (0 << ADPS1) | (0 << ADPS0); //  16       |  500 kHz | 38.46 kHz | 37.04 kHz
+//  ADCSRA |= (0 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); //   8       | 1000 kHz | 76.92 kHz | 74.07 kHz
+//  ADCSRA |= (0 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); //   4       | 2000 kHz | 153.8 kHz | 148.1 kHz
+//  ADCSRA |= (0 << ADPS2) | (0 << ADPS1) | (1 << ADPS0); //   2       | 4000 kHz | 307.7 kHz | 296.3 kHz
+//  ADCSRA |= (0 << ADPS2) | (0 << ADPS1) | (0 << ADPS0); //   1       | 8000 kHz | 615.4 kHz | 592.6 kHz
+  // ADC conversion takes 13 clock cycles?
+  // CLKadc must remain between 3.846 and 15.385 kHz (50 and 200 kHz before /13 clock cycles), according to datasheet?
 
-  // http://www.robotplatform.com/knowledge/ADC/adc_tutorial_2.html
-  // sampling rate is [ADC clock] / [prescaler] / [conversion clock cycles]
-  // for Arduino Uno ADC clock is 16 MHz and a conversion takes 13 clock cycles
-  ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // 128 prescaler for 9.615 kHz
-  //ADCSRA |= (1 << ADPS2) | (1 << ADPS1);    // 64 prescaler for 19.231 kHz
-  //ADCSRA |= (1 << ADPS2) | (1 << ADPS0);    // 32 prescaler for 38.462 KHz
-  //ADCSRA |= (1 << ADPS2);                   // 16 prescaler for 76.923 KHz
-  //ADCSRA |= (1 << ADPS1) | (1 << ADPS0);    // 8 prescaler for 153.846 KHz
-  // must remain between 3.846 and 15.385 kHz (50 and 200 kHz before /13 clock cycles), kHzaccording to datasheet?
+  // ---------- Timer0 ---------- //
+  // TCCR0A - Timer/Counter Control Register A
+  // COM0A[1:0]: Compare Match Output A Mode Bits 1-0
+  // COM0B[1:0}: Compare Match Output B Mode Bits 1-0
+  // WGM0[1:0]: Waveform Generation Mode
+//  TCCR0A |= (0 << COM0A1) | (0 << COM0A0); // Normal port operation, OC0A disconnected.
+  TCCR0A |= (0 << COM0A1) | (1 << COM0A0); // Toggle OC0A on Compare Match.
+//  TCCR0A |= (1 << COM0A1) | (0 << COM0A0); // Clear OC0A on Compare Match.
+//  TCCR0A |= (1 << COM0A1) | (1 << COM0A0); // Set OC0A on Compare Match.
+//  TCCR0B |= (0 << COM0B1) | (0 << COM0B0); // Normal port operation, OC0B disconnected.
+  TCCR0A |= (0 << COM0B1) | (1 << COM0B0); // Toggle OC0B on Compare Match.
+//  TCCR0B |= (1 << COM0B1) | (0 << COM0B0); // Clear OC0B on Compare Match.
+//  TCCR0B |= (1 << COM0B1) | (1 << COM0B0); // Set OC0B on Compare Match.
+  // TCCR0B - Timer/Counter Control Register B
+  // FOC0A: Force Output Compare A
+  // FOC0B: Force Output Compare B
+  // WGM02: Waveform Generation Mode
+  // CS0[2:0]: Clock Select Bits 2-0
+  TCCR0B |= (0 << CS02) | (0 << CS01) | (0 << CS00); // No clock source
+  TCCR0B |= (0 << CS02) | (0 << CS01) | (0 << CS00); // clk
+  TCCR0B |= (0 << CS02) | (0 << CS01) | (0 << CS00); // clk / 8
+  TCCR0B |= (0 << CS02) | (0 << CS01) | (0 << CS00); // clk / 64
+  TCCR0B |= (0 << CS02) | (0 << CS01) | (0 << CS00); // clk / 256
+  TCCR0B |= (0 << CS02) | (0 << CS01) | (0 << CS00); // clk / 1024
+  TCCR0B |= (0 << CS02) | (0 << CS01) | (0 << CS00); // External clock source on T0 pin, Clock on falling edge.
+  TCCR0B |= (0 << CS02) | (0 << CS01) | (0 << CS00); // External clock source on T0 pin, Clock on rising edge.
+  // TIMSK0 - Timer/Counter Interrupt Mask Register
+  // OCIE0B: Timer/Counter Compare Match B Interrupt Enable
+  // OCIE0A: Timer/Counter Compare Match A Interrupt Enable
+  // TOIE0: Timer/Counter Overflow Interrupt Enable
 
-  ADCSRA |= (1 << ADATE); // enable auto trigger
-  ADCSRA |= (1 << ADEN);  // enable ADC
-  ADCSRA |= (1 << ADSC);  // start ADC conversion
-
-  Timer1.initialize(100); // timer period (in microseconds)
-  Timer1.attachInterrupt(callback); // blinkLED to run at 9000 Hz
-
+  // ---------- LPM ----------//
+  // SMCR - Sleep Mode Control Register
+  // SM[2:0]: Sleep Mode Select Bits 2-0
+  // SE: Sleep Enable
+  SMCR |= (0 << SM2) | (0 << SM1) | (0 << SM0); // Idle
+//  SMCR |= (0 << SM2) | (0 << SM1) | (1 << SM0); // ADC Noise Reduction
+//  SMCR |= (0 << SM2) | (1 << SM1) | (0 << SM0); // Power-down
+//  SMCR |= (0 << SM2) | (1 << SM1) | (1 << SM0); // Power-save
+//  SMCR |= (1 << SM2) | (0 << SM1) | (0 << SM0); // Reserved
+//  SMCR |= (1 << SM2) | (0 << SM1) | (1 << SM0); // Reserved
+//  SMCR |= (1 << SM2) | (1 << SM1) | (0 << SM0); // Standby
+//  SMCR |= (1 << SM2) | (1 << SM1) | (1 << SM0); // External Standby
+  
+  // ---------- DAC ----------//
   dac.begin(0x62);
 
+  // ---------- I/O Pins ---------- //
 //  pinMode(A1, INPUT);
-//  
-  pinMode(FREF_PIN, OUTPUT);
-  digitalWrite(FREF_PIN, HIGH); // to be used in voltage divider circuit for fSelCase.
+//  pinMode(FREF_PIN, OUTPUT);
+//  digitalWrite(FREF_PIN, HIGH); // to be used in voltage divider circuit for fSelCase.
 
-  Serial.begin(115200);
+  // ---------- Final Setup ---------- //
+  
 }
 
-void callback()
+ISR(Timer_vect)
 {
-  uint8_t low, high;
+//  SMCR &= ~(1 << SE); // sleep disabled.
+  
+  ADMUX = (1 << REFS0) | (1 & 0x07);    // keep reference voltage, set A1 analog input pin.
+  ADCSRA |= (1 << ADSC);  // start ADC conversion.
+}
 
-  ADMUX = (ADMUX & 0xF0) | 0x00;    // set A0 analog input pin
-  ADCSRA |= (1 << ADSC);  // start ADC conversion
-//  ADMUX |= (0 & 0x07);    // set A0 analog input pin?
-//  ADMUX |= (1 << REFS0);  // set reference voltage
+ISR(ADC_vect)
+{
+//  SMCR &= ~(1 << SE); // sleep disabled.
+  
+  uint8_t low, high;
   low = ADCL;
   high = ADCH;
+  
   voiceVec[voiceIn] = (high << 8) | low;
   
   voiceIn = (voiceIn + 1) % CHUNK;
@@ -118,34 +192,38 @@ void callback()
       voiceOut = (voiceOut + 4) % CHUNK; // 32/8
     break;
     default: break; // do nothing, includes case 15 (analogRead from fSelPin = 1023).
+
+    dac.setVoltage(voiceVec[voiceOut] << 2, false);
   }
 }
 
 void loop(void)
 {
-  dac.setVoltage(voiceVec[voiceOut], false);
+  // ---------- LPM ADC Noise Reduction ---------- //
+//  SMCR = (1 << SE); // Sleep enabled.
+//  sleep_mode();
   
-  if(!(millis() % FSEL_TIME) && fSelReady) // triggers when millis is evenly divisible by FSEL_TIME, used to limit analogRead frequency.
-  {
-    ADMUX = (ADMUX & 0xF0) | 0x01;    // set A1 analog input pin.
-    ADCSRA |= (1 << ADSC);  // start ADC conversion
-//    ADMUX |= (0 & 0x07);    // set A0 analog input pin?
-//    ADMUX |= (1 << REFS0);  // set reference voltage
-    uint8_t low, high;
-    
-    low = ADCL;
-    high = ADCH;
-    fSelCase = (high << 8) | low;
-    
-    //fSelCase = floor(fSelCase * FSEL_INCON); // fSelCase = input * 16 / 1023, rounded down.
-    
-    Serial.println(fSelCase);
-
-    fSelReady = false;
-  } 
-  else if(millis() % FSEL_TIME) 
-  {
-    fSelReady = true;
-  }
+//  dac.setVoltage(voiceVec[voiceOut], false);
+  
+//  if(!(millis() % FSEL_TIME) && fSelReady) // triggers when millis is evenly divisible by FSEL_TIME, used to limit analogRead frequency.
+//  {
+//    ADMUX = (1 << REFS0) | (1 & 0x07);    // keep reference voltage, set A1 analog input pin 
+//    ADCSRA |= (1 << ADSC);  // start ADC conversion
+//    uint8_t low, high;
+//    
+//    low = ADCL;
+//    high = ADCH;
+//    fSelCase = (high << 8) | low;
+//    
+//    //fSelCase = floor(fSelCase * FSEL_INCON); // fSelCase = input * 16 / 1023, rounded down.
+//    
+//    Serial.println(fSelCase);
+//
+//    fSelReady = false;
+//  } 
+//  else if(millis() % FSEL_TIME) 
+//  {
+//    fSelReady = true;
+//  }
   
 }

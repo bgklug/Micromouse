@@ -110,5 +110,5 @@ void callback()
 
 void loop(void)
 {
-  dac.setVoltage(voiceVec[voiceOut] * 4, false);  // multiplied by 4 to shift bits left 2 for higher voltage output (10-bit ADC, 12-bit DAC)
+  dac.setVoltage(voiceVec[voiceOut] << 2, false);  // shift bits left 2 for higher voltage output (10-bit ADC, 12-bit DAC)
 }
