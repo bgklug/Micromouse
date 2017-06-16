@@ -6,7 +6,6 @@ Adafruit_MCP4725 dac;
 
 // set both equal to 1 for unchanged voice.
 #define CHUNK   512 // max ~ 850 from dynamic memory, max = 1023 from uint16_t voiceIn/voiceOut.
-#define OFFSET -512 // shift output value to DAC down by half mic input.
 
 uint8_t fSelCase = 0; // percent speed to play back voice (  15 |  14 |  13 |  12 |  11 |  10 |   9 |   8 |   0 |  1   |  2   |  3  |  4   |  5   |  6   |  7
                       //                                 =  xxx | 400 | 300 | 250 | 200 | 175 | 150 | 125 | 100 | 87.5 | 75.0 |67.5 | 50.0 | 37.5 | 25.0 | 12.5).
@@ -19,7 +18,7 @@ uint16_t voiceVec[CHUNK];
 void setup()
 {
   // http://www.robotplatform.com/knowledge/ADC/adc_tutorial_3.html
-  ADMUX |= (0 & 0x07);    // set A0 analog input pin?
+  ADMUX |= (0 & 0x07);    // set A0 analog input pin
   ADMUX |= (1 << REFS0);  // set reference voltage
 
   // http://www.robotplatform.com/knowledge/ADC/adc_tutorial_2.html
@@ -37,11 +36,9 @@ void setup()
   ADCSRA |= (1 << ADSC);  // start ADC conversion
 
   Timer1.initialize(100); // timer period (in microseconds)
-  Timer1.attachInterrupt(callback); // blinkLED to run at 9000 Hz
+  Timer1.attachInterrupt(callback); // 10000 Hz
 
   dac.begin(0x62);
-
-//  Serial.begin(115200);
 }
 
 void callback()
